@@ -5,7 +5,7 @@ package com.tander.logistics
  *
  * Структура для описания скриптов, включаемых в БД релиз
  */
-class WhsDBFile {
+class DBFile {
     String name
     String path
     String svnUrl
@@ -17,7 +17,7 @@ class WhsDBFile {
     int wildcardID
     String installSection
 
-    WhsDBFile(String name) {
+    DBFile(String name) {
         this.name = name
 
     }

@@ -1,8 +1,8 @@
 package com.tander.logistics.tasks
 
-import com.tander.logistics.WhsDBFile
+import com.tander.logistics.DBFile
 
-import com.tander.logistics.WhsDBTemplate
+import com.tander.logistics.DBTemplate
 import com.tander.logistics.DBScriptExtension
 import com.tander.logistics.utils.SVNUtils
 import com.tander.logistics.utils.WhsUtils
@@ -31,7 +31,7 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil
  *
  * Таск для сборки БД релиза.
  */
-class WhsBuildDBReleaseTask extends DefaultTask {
+class BuildDBScriptTask extends DefaultTask {
 
     def String username
     def char[] password
@@ -59,7 +59,7 @@ class WhsBuildDBReleaseTask extends DefaultTask {
 
     def String RELEASE_PATH = '/release/'
 
-    WhsBuildDBReleaseTask() {
+    BuildDBScriptTask() {
         description = 'Generate install and uninstall SQL scripts'
 //        initObjectValues(project.whsrelease)
 //        svnUtils = new SVNUtils(username, password)
@@ -164,7 +164,7 @@ class WhsBuildDBReleaseTask extends DefaultTask {
             scriptSections[it.key] = ''
         }
 
-        installFiles.each { String fileName, WhsDBFile whsDBFile ->
+        installFiles.each { String fileName, DBFile whsDBFile ->
             if (isInstall) {
                 WhsUtils.CopyFile(whsDBFile.name, project.buildDir.path + '/export/current/install/', project.buildDir.path + '/release/install/install/')
                 WhsUtils.CopyFile(whsDBFile.name, project.buildDir.path + '/export/previous/install/', project.buildDir.path + '/release/uninstall/uninstall/')
@@ -202,7 +202,7 @@ class WhsBuildDBReleaseTask extends DefaultTask {
             binding[it.key] = it.value
         }
 
-        WhsDBTemplate installTemplate = new WhsDBTemplate(installTemplatePath)
+        DBTemplate installTemplate = new DBTemplate(installTemplatePath)
         installTemplate.makeScript(project.buildDir.path + RELEASE_PATH + "${scriptType}/${scriptType}.sql", binding)
 
         WhsUtils.CreateTarBZ(project.buildDir.getAbsolutePath() + RELEASE_PATH + "${scriptType}/",
@@ -269,7 +269,7 @@ class WhsBuildDBReleaseTask extends DefaultTask {
                 if (svnDiffStatus.getKind() == SVNNodeKind.FILE) {
                     def int wildcardMatchCount = 0
                     def String wildcardsMatched = ''
-                    def WhsDBFile dbFile = new WhsDBFile()
+                    def DBFile dbFile = new DBFile()
                     dbFile.name = svnDiffStatus.getPath()
                     installSectionWildacards.each { sectionName, wildcards ->
                         wildcards.eachWithIndex { wildcard, i ->
@@ -325,10 +325,10 @@ class WhsBuildDBReleaseTask extends DefaultTask {
                 @Override
                 void handleDirEntry(SVNDirEntry svnDirEntry) throws SVNException {
                     if (installFiles.containsKey(svnDirEntry.getRelativePath())) {
-                        WhsDBFile whsDBFile = installFiles[svnDirEntry.getRelativePath()]
+                        DBFile whsDBFile = installFiles[svnDirEntry.getRelativePath()]
                         whsDBFile.lastAuthor = svnDirEntry.getAuthor()
                         whsDBFile.lastRevision = svnDirEntry.getRevision()
-//                    (installFiles[svnDirEntry.getRelativePath()] as WhsDBFile).lastMessage = svnDirEntry.getCommitMessage()
+//                    (installFiles[svnDirEntry.getRelativePath()] as DBFile).lastMessage = svnDirEntry.getCommitMessage()
                         whsDBFile.lastDate = svnDirEntry.getDate()
                         whsDBFile.lastDateFormatted = svnDirEntry.getDate().format('dd.MM.yyyy ss:mm:HH')
                     }
@@ -361,9 +361,9 @@ class WhsBuildDBReleaseTask extends DefaultTask {
     }
 
     // компаратор для сортировки списка файлов. Сперва сортируем по маске файла из настроек, потом по пути к файлу
-    Comparator<Map.Entry<String, WhsDBFile>> whsDBFileComparatorWildcard = new Comparator<Map.Entry<String, WhsDBFile>>() {
+    Comparator<Map.Entry<String, DBFile>> whsDBFileComparatorWildcard = new Comparator<Map.Entry<String, DBFile>>() {
         @Override
-        int compare(Map.Entry<String, WhsDBFile> o1, Map.Entry<String, WhsDBFile> o2) {
+        int compare(Map.Entry<String, DBFile> o1, Map.Entry<String, DBFile> o2) {
             if (o1.value.wildcardID > o2.value.wildcardID) {
                 return 1
             }

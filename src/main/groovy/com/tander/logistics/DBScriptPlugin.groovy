@@ -1,6 +1,6 @@
 package com.tander.logistics
 
-import com.tander.logistics.tasks.WhsBuildDBReleaseTask
+import com.tander.logistics.tasks.BuildDBScriptTask
 import com.tander.logistics.utils.WhsUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -18,7 +18,7 @@ class DBScriptPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.extensions.create('whsrelease', DBScriptExtension)
 
-        def buildDBReleaseTask = project.task('buildDBRelease', type: WhsBuildDBReleaseTask)
+        def buildDBReleaseTask = project.task('buildDBRelease', type: BuildDBScriptTask)
         def buildFileReleaseTask = project.task('buildFileRelease') << {
 
         }

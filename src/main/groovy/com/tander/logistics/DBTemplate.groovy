@@ -8,10 +8,10 @@ import groovy.text.Template
  *
  * Формирование итоговых скриптов на основании шаблонов
  */
-class WhsDBTemplate {
+class DBTemplate {
     def Template template
 
-    def WhsDBTemplate(String templateFilePath) {
+    def DBTemplate(String templateFilePath) {
         def File templateFile = new File(templateFilePath)
         def SimpleTemplateEngine engine = new SimpleTemplateEngine()
         if (templateFile.exists()) {
