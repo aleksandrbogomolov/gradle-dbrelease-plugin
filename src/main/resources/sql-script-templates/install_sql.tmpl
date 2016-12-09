@@ -1,0 +1,173 @@
+spool $log_version
+
+alter session set current_schema=WMS;
+set serveroutput on
+set define off
+prompt #########################################################################
+prompt #  $desc_name
+prompt #  $desc_version
+prompt #
+prompt #########################################################################
+
+prompt *************************************************************************
+prompt [!] Checks subsystem Version before install [start]
+WHENEVER SQLERROR EXIT
+declare
+    l_expected_version varchar2(30) := '$current_version';
+    l_db_version varchar2(30) :='';
+begin
+  select  prv_utils.get_version('kernel',null)
+          into l_db_version from dual;
+  if (l_expected_version is not null and l_expected_version <> l_db_version) then
+    raise_application_error(-20000, to_char('The update should be installed on subsystem version '||l_expected_version||'. Current subsystem version is '||l_db_version));
+ end if;
+end;
+/
+prompt [!] Checks subsystem Version before install [done]
+prompt *************************************************************************
+
+prompt *************************************************************************
+prompt [!] Checks invalid objects before install [start]
+select owner || '.' || object_type||'/'||object_name "TYPE/OBJECT" from dba_objects
+where status='INVALID' and object_type not in ('FUNCTION', 'PROCEDURE') and owner in ('WMS', 'RAN', 'TCUP', 'ETL', 'AAN', 'RDE_OWN', 'UTM')
+order by owner, object_type, object_name;
+commit;
+prompt [!] Checks invalid objects before install [done]
+prompt *************************************************************************
+
+prompt *************************************************************************
+prompt [!] Stop job FDE import [start]
+begin
+    wms.wms_utils.set_wms_char_param(p_param_code => 'fde_import_event', p_value => 'false');
+    commit;
+end;
+/
+prompt [!] Stop job FDE import [done]
+prompt [!] Waiting for completion running jobs [start]
+alter session set ddl_lock_timeout = 600;
+WHENEVER SQLERROR EXIT
+declare
+    l_job_start_fl number := 1;
+begin
+    execute immediate 'alter system set job_queue_processes=0';
+    ---
+    for i in 0 .. 12
+    loop
+        select count(*)
+            into l_job_start_fl
+            from dba_scheduler_jobs
+         where state = 'RUNNING' and owner in ('WMS', 'RAN', 'TCUP', 'ETL', 'AAN', 'RDE_OWN', 'UTM', 'UIDISP') and rownum = 1;
+        ---
+        exit when l_job_start_fl = 0;
+        if i = 12 then
+            execute immediate 'alter system set job_queue_processes=1000';
+            raise_application_error(-20000, 'Some jobs is still running. Please, abort jobs and run this script again.');
+        end if;
+        dbms_lock.sleep(5);
+    end loop;
+end;
+/
+WHENEVER SQLERROR CONTINUE
+prompt [!] Waiting for completion running jobs [done]
+prompt *************************************************************************
+
+prompt *************************************************************************
+prompt [!] Install Before Recompiling [start]
+--------------------------------------------------------------------------------
+$before_section
+--------------------------------------------------------------------------------
+prompt [!] Install Before Recompiling [done]
+prompt *************************************************************************
+
+prompt *************************************************************************
+prompt [!] Recompiling schemas objects [start]
+prompt [!] Recompiling schema objects WMS
+exec dbms_utility.compile_schema('RAN', false);
+prompt [!] Recompiling schema objects RAN
+exec dbms_utility.compile_schema('WMS', false);
+prompt [!] Recompiling schema objects TCUP
+exec dbms_utility.compile_schema('TCUP', false);
+prompt [!] Recompiling schema objects ETL
+exec dbms_utility.compile_schema('ETL', false);
+prompt [!] Recompiling schema objects AAN
+exec dbms_utility.compile_schema('AAN', false);
+prompt [!] Recompiling schema objects RDE_OWN
+exec dbms_utility.compile_schema('RDE_OWN', false);
+prompt [!] Recompiling schema objects UTM
+exec dbms_utility.compile_schema('UTM', false);
+
+begin
+  prv_utils.grant_api_privileges2uidisp_rl('WMS');
+end;
+/
+
+EXEC DBMS_SESSION.RESET_PACKAGE;
+prompt [!] Recompiling schemas objects [done]
+prompt *************************************************************************
+
+prompt *************************************************************************
+prompt [!] Install After Recompiling [start]
+--------------------------------------------------------------------------------
+$after_section
+--------------------------------------------------------------------------------
+commit;
+prompt [!] Install After Recompiling [done]
+prompt *************************************************************************
+
+prompt *************************************************************************
+prompt [!] Start job FDE import [start]
+begin
+    wms.wms_utils.set_wms_char_param(p_param_code => 'fde_import_event', p_value => 'TRUE');
+    commit;
+end;
+/
+prompt [!] Start job FDE import [done]
+prompt [!] Recompiling schemas objects [start]
+alter system set job_queue_processes=1000;
+prompt [!] Recompiling schema objects WMS
+exec dbms_utility.compile_schema('RAN', false);
+prompt [!] Recompiling schema objects RAN
+exec dbms_utility.compile_schema('WMS', false);
+prompt [!] Recompiling schema objects TCUP
+exec dbms_utility.compile_schema('TCUP', false);
+prompt [!] Recompiling schema objects ETL
+exec dbms_utility.compile_schema('ETL', false);
+prompt [!] Recompiling schema objects AAN
+exec dbms_utility.compile_schema('AAN', false);
+prompt [!] Recompiling schema objects RDE_OWN
+exec dbms_utility.compile_schema('RDE_OWN', false);
+prompt [!] Recompiling schema objects UTM
+exec dbms_utility.compile_schema('UTM', false);
+prompt ... Recompiling schema objects done...
+prompt [!] Recompiling schemas objects [done]
+prompt *************************************************************************
+
+prompt *************************************************************************
+prompt [!] Update subsystem Version [start]
+declare
+    l_new_version varchar2(30) := '$new_version';
+begin
+  if (l_new_version is not null) then
+    prv_utils.update_version('kernel', l_new_version);
+ end if;
+end;
+/
+prompt [!] Update subsystem Version [done]
+prompt *************************************************************************
+
+prompt *************************************************************************
+prompt [!] Checks invalid objects after install [start]
+select owner || '.' || object_type||'/'||object_name "TYPE/OBJECT" from dba_objects
+where status='INVALID' and object_type not in ('FUNCTION', 'PROCEDURE') and owner in ('WMS', 'RAN', 'TCUP', 'ETL', 'AAN', 'RDE_OWN', 'UTM')
+order by owner, object_type, object_name;
+commit;
+prompt [!] Checks invalid objects after install [done]
+prompt *************************************************************************
+prompt [!] installation is completed
+
+spool off
+
+exit
+
+$information_created
+$information_statistics

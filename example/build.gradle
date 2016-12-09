@@ -1,0 +1,30 @@
+buildscript {
+    repositories {
+        flatDir {
+            dirs '../build/libs'
+        }
+        maven {
+            url "http://nexusrepo.corp.tander.ru:8080/nexus/content/groups/public/"
+        }
+
+    }
+    dependencies {
+        classpath 'com.tander.logistics:gradle-release-builder-plugin:0.0.1-SNAPSHOT'
+        classpath 'org.tmatesoft.svnkit:svnkit:1.8.11'
+        classpath 'org.apache.commons:commons-io:1.3.2'
+        classpath 'org.apache.commons:commons-compress:1.10'
+    }
+}
+
+apply plugin: 'com.tander.logistics'
+
+whsrelease {
+    currentInstallSVNURL = "https://sources.corp.tander.ru/svn/repos/dc_ora/Oracle/releases/1.82.0/install"
+    currentUninstallSVNURL = "https://sources.corp.tander.ru/svn/repos/dc_ora/Oracle/releases/1.82.0/uninstall"
+    previousInstallSVNURL = 'https://sources.corp.tander.ru/svn/repos/dc_ora/Oracle/releases/1.81.20/install'
+    projectType = 'db'
+    releaseNumber = '1.82.0'
+    svnUsername = project.properties.svnUsername
+    svnPassword = project.properties.svnPassword
+    showSvnExportLog = false
+}
