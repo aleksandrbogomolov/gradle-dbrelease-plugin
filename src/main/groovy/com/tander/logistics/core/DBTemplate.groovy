@@ -1,4 +1,4 @@
-package com.tander.logistics
+package com.tander.logistics.core
 
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
@@ -9,17 +9,27 @@ import groovy.text.Template
  * Формирование итоговых скриптов на основании шаблонов
  */
 class DBTemplate {
-    def Template template
+    Template template
 
-    def DBTemplate(String templateFilePath) {
-        def File templateFile = new File(templateFilePath)
-        def SimpleTemplateEngine engine = new SimpleTemplateEngine()
+    DBTemplate(String templateFilePath) {
+        File templateFile = new File(templateFilePath)
+        SimpleTemplateEngine engine = new SimpleTemplateEngine()
         if (templateFile.exists()) {
             template = engine.createTemplate(templateFile)
         } else {
             template = engine.createTemplate(this.getClass().getResource('/sql-script-templates/install_sql.tmpl').text)
         }
     }
+
+    DBTemplate(File templateFile) {
+        SimpleTemplateEngine engine = new SimpleTemplateEngine()
+        if (templateFile.exists()) {
+            template = engine.createTemplate(templateFile)
+        } else {
+            throw new Exception('Не найден шаблон ' + templateFile.canonicalPath)
+        }
+    }
+
 
     def makeScript(String scriptFilePath, Map binding) {
         def installSqlFile = new File(scriptFilePath)

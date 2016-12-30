@@ -1,6 +1,5 @@
 package com.tander.logistics;
 
-import com.tander.logistics.utils.PaludisPackage;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -8,7 +7,7 @@ import static org.junit.Assert.*;
 /**
  * Created by durov_an on 05.04.2016.
  */
-public class WhsReleasePluginTest {
+public class DBReleasePluginTest {
     @Test
     public void apply() throws Exception {
 

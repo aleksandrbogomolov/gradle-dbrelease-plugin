@@ -1,4 +1,4 @@
-package com.tander.logistics.utils
+package com.tander.logistics.svn
 
 import org.tmatesoft.svn.core.ISVNDirEntryHandler
 import org.tmatesoft.svn.core.ISVNLogEntryHandler
@@ -33,6 +33,22 @@ class SVNUtils {
         authManager = SVNWCUtil.createDefaultAuthenticationManager(username, password)
     }
 
+
+    def doExport(String svnURL, String dirPath, SVNRevision revision, ISVNEventHandler dispatcher) {
+        SVNUpdateClient updateClient = new SVNUpdateClient(getAuthManager(), SVNWCUtil.createDefaultOptions(true))
+        updateClient.setEventHandler(dispatcher)
+        updateClient.setIgnoreExternals(true)
+        updateClient.doExport(
+                SVNURL.parseURIEncoded(svnURL),
+                new File(dirPath),
+                revision,
+                revision,
+                '',
+                false,
+                SVNDepth.INFINITY
+        )
+    }
+
     def doCheckout(String svnURL, String dirPath, SVNRevision revision, ISVNEventHandler dispatcher) {
         SVNUpdateClient updateClient = new SVNUpdateClient(getAuthManager(), SVNWCUtil.createDefaultOptions(true))
         updateClient.setEventHandler(dispatcher)
@@ -58,13 +74,13 @@ class SVNUtils {
                 false)
     }
 
-    def doLog(String svnUrl, long startRevision, long limit, ISVNLogEntryHandler isvnLogEntryHandler) {
+    def doLog(String svnUrl, SVNRevision startRevision, long limit, ISVNLogEntryHandler isvnLogEntryHandler) {
         SVNLogClient logClient = new SVNLogClient(getAuthManager(), SVNWCUtil.createDefaultOptions(true))
         logClient.doLog(
                 SVNURL.parseURIEncoded(svnUrl),
                 null,
                 SVNRevision.UNDEFINED,
-                SVNRevision.create(startRevision),
+                startRevision,
                 SVNRevision.HEAD,
                 true,
                 true,

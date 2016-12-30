@@ -1,16 +1,15 @@
 package com.tander.logistics.tasks
 
-import com.tander.logistics.DBFile
-
-import com.tander.logistics.DBTemplate
-import com.tander.logistics.DBScriptExtension
-import com.tander.logistics.utils.SVNUtils
-import com.tander.logistics.utils.WhsUtils
+import com.tander.logistics.core.DBTemplate
+import com.tander.logistics.DBReleaseExtension
+import com.tander.logistics.core.SCMFile
+import com.tander.logistics.svn.DBReleaseSVN
+import com.tander.logistics.svn.SVNUtils
+import com.tander.logistics.core.FileUtils
+import com.tander.logistics.core.ScriptType
 import org.apache.commons.io.FilenameUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.bundling.Compression
-import org.gradle.api.tasks.bundling.Tar
 import org.tmatesoft.svn.core.ISVNDirEntryHandler
 import org.tmatesoft.svn.core.ISVNLogEntryHandler
 import org.tmatesoft.svn.core.SVNCancelException
@@ -31,60 +30,70 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil
  *
  * Таск для сборки БД релиза.
  */
+
+
 class BuildDBScriptTask extends DefaultTask {
 
-    def String username
-    def char[] password
-    def String currentInstallSVNURL
-    def String currentUninstallSVNURL
-    def String previousInstallSVNURL
-    def String releaseNumber
-    def String previousReleaseNumber
-    def SVNRevision currentInstallRevision
-    def SVNRevision previousInstallRevision
-    def SVNRevision currentUninstallRevision
-    def SVNRevision previousUninstallRevisiologgern
-    def boolean showSvnExportLog
-    def boolean showSvnDiffLog
-    def boolean showFileCopyLog
-    def boolean showLastCommiter
-    def String installTemplatePath
-    def installSectionWildacards = []
-    def installFiles = [:] // список файлов для установки
-    def uninstallFiles = [:] // список файлов для отката
-    def scriptSections = [:]
-    def String spprTask
+    File dbTemplate
 
-    def SVNUtils svnUtils
+    SVNRevision currentInstallRevision
+    SVNRevision previousInstallRevision
+    SVNRevision currentUninstallRevision
+    SVNRevision previousUninstallRevision
+    LinkedHashMap installFiles  // список файлов для установки
+    LinkedHashMap uninstallFiles  // список файлов для отката
+    LinkedHashMap scriptSections
 
-    def String RELEASE_PATH = '/release/'
+    SVNUtils svnUtils
+    DBReleaseExtension ext
+
+    String RELEASE_PATH = '/release/'
 
     BuildDBScriptTask() {
         description = 'Generate install and uninstall SQL scripts'
 //        initObjectValues(project.whsrelease)
-//        svnUtils = new SVNUtils(username, password)
+//        svnUtils = new SVNUtils(user, password)
+        this.ext = project.dbrelease
     }
 
-    def private exportDir(String svnURL, String exportDirPath, SVNRevision revision) {
+    @TaskAction
+    void run() {
+        File releaseDir = new File(project.buildDir.getPath() + '/script')
+        releaseDir.deleteDir();
+
+
+        DBReleaseSVN dbRelease = new DBReleaseSVN(project)
+
+        dbRelease.setChangedFilesByDiff()
+        dbRelease.exportChangedFilesToDir()
+        dbRelease.setLastCommitInfo()
+        dbRelease.assemblyScript(dbTemplate)
+
+//        initObjectValues()
+//        buildRelease()
+    }
+
+
+    private checkoutSVNBranch(String svnURL, String exportDirPath, SVNRevision revision) {
 
         ISVNEventHandler dispatcher = new ISVNEventHandler() {
             @Override
             void handleEvent(SVNEvent svnEvent, double v) throws SVNException {
-                logger.info("exporting file " + svnEvent.getFile().toString())
+                logger.lifecycle("exporting file " + svnEvent.getFile().toString())
             }
 
             @Override
             void checkCancelled() throws SVNCancelException {
             }
         }
-//        updateClient.doExport(SVNURL.parseURIEncoded(svnURL), exportDir, revision, revision, null, true, SVNDepth.INFINITY);
+//        updateClient.doExport(SVNURL.parseURIEncoded(svnURL), checkoutSVNBranch, revision, revision, null, true, SVNDepth.INFINITY);
 
         if (SVNWCUtil.isVersionedDirectory(new File(exportDirPath))) {
             if (svnUtils.getWorkingDirectoryURL(exportDirPath) == svnURL) {
                 logger.lifecycle("update folder $exportDirPath")
                 svnUtils.doUpdate(exportDirPath, revision, dispatcher)
             } else {
-                throw new Exception("Необходимо очистить каталог build")
+                throw new Exception("Need to clean build dir")
             }
         } else {
             File exportDir = new File(exportDirPath)
@@ -94,106 +103,83 @@ class BuildDBScriptTask extends DefaultTask {
         }
     }
 
-    @TaskAction
-    def start() {
-        initReleaseDirs()
-        initObjectValues(project.whsrelease)
-        buildRelease()
-    }
-
-    private void initReleaseDirs() {
-//        File exportDirs = new File(project.buildDir.getPath() + '/export')
-//        exportDirs.deleteDir();
-        File releaseDir = new File(project.buildDir.getPath() + '/release')
-        releaseDir.deleteDir();
-    }
-
-
-    def private initObjectValues(DBScriptExtension whsReleaseExtension) {
+    private initObjectValues() {
         // инициализация для работы с SVN
+        svnUtils = new SVNUtils(ext.user, ext.password.toCharArray())
+        currentInstallRevision = (ext.currentInstallRevision <= 0) ?
+                SVNRevision.HEAD : SVNRevision.create(ext.currentInstallRevision)
 
-        username = whsReleaseExtension.svnUsername
-        password = whsReleaseExtension.svnPassword as char[]
-
-        svnUtils = new SVNUtils(username, password)
-
-        currentInstallSVNURL = whsReleaseExtension.currentInstallSVNURL
-        currentUninstallSVNURL = whsReleaseExtension.currentUninstallSVNURL
-        previousInstallSVNURL = whsReleaseExtension.previousInstallSVNURL ?: currentInstallSVNURL
-        releaseNumber = whsReleaseExtension.releaseNumber
-        if (!releaseNumber) {
-            throw new Exception("Не указан параметр releaseNumber")
-        }
-        previousReleaseNumber = whsReleaseExtension.previousReleaseNumber
-        currentInstallRevision = (whsReleaseExtension.currentInstallRevision <= 0) ?
-                SVNRevision.HEAD : SVNRevision.create(whsReleaseExtension.currentInstallRevision)
-
-        if (!whsReleaseExtension.previousInstallSVNURL) {
-            previousInstallRevision = (whsReleaseExtension.previousInstallRevision <= 0) ?
-                    getFirstRevision(currentInstallSVNURL) : SVNRevision.create(whsReleaseExtension.previousInstallRevision)
+        if (!ext.previousInstallSVNURL) {
+            previousInstallRevision = (ext.previousInstallRevision <= 0) ?
+                    getFirstRevision(ext.currentInstallSVNURL) : SVNRevision.create(ext.previousInstallRevision)
         } else {
-            previousInstallRevision = (whsReleaseExtension.previousInstallRevision <= 0) ?
-                    SVNRevision.HEAD : SVNRevision.create(whsReleaseExtension.previousInstallRevision)
+            previousInstallRevision = (ext.previousInstallRevision <= 0) ?
+                    SVNRevision.HEAD : SVNRevision.create(ext.previousInstallRevision)
         }
-        showSvnExportLog = whsReleaseExtension.showSvnExportLog
-        showSvnDiffLog = whsReleaseExtension.showSvnDiffLog
-        showFileCopyLog = whsReleaseExtension.showFileCopyLog
-        showLastCommiter = whsReleaseExtension.showLastCommiter
-        installTemplatePath = whsReleaseExtension.installTemplatePath
-        installSectionWildacards = whsReleaseExtension.installSectionWildacards
-        spprTask = whsReleaseExtension.spprTask
-
     }
 
     def buildRelease() {
-        getChangedFiles()
-        getLastCommitInfo()
-        exportFiles()
+//        getChangedFiles()
+//        if (ext.showLastCommiter) {
+//            setLastSVNCommitInfo()
+//        }
+//        exportFiles()
 
-        createSQLScript("install", installFiles)
-        if (currentUninstallSVNURL) {
-            createSQLScript("uninstall", uninstallFiles)
+        assemblyOracleScript(ScriptType.stInstall, installFiles)
+        if (ext.currentUninstallSVNURL) {
+            assemblyOracleScript(ScriptType.stUninstall, uninstallFiles)
         }
     }
 
-    def private createSQLScript(String scriptType, Map installFiles) {
-// заполним скрипты по секциям для вставки в ${scriptType}.sql и скопируем файлы
-        def boolean isInstall = scriptType == "install"
+    private assemblyOracleScript(ScriptType scriptType, Map scmFiles) {
+        // заполним скрипты по секциям для вставки в ${scriptType}.sql и скопируем файлы
+        boolean isInstall = scriptType == ScriptType.stInstall
 
-        installSectionWildacards.each {
+        ext.wildacards.each {
             scriptSections[it.key] = ''
         }
 
-        installFiles.each { String fileName, DBFile whsDBFile ->
+        scmFiles.each { String fileName, SCMFile scmFile ->
             if (isInstall) {
-                WhsUtils.CopyFile(whsDBFile.name, project.buildDir.path + '/export/current/install/', project.buildDir.path + '/release/install/install/')
-                WhsUtils.CopyFile(whsDBFile.name, project.buildDir.path + '/export/previous/install/', project.buildDir.path + '/release/uninstall/uninstall/')
+                // если формируем скрипт наката, то
+                FileUtils.CopyFile(scmFile.name,
+                        project.buildDir.path + '/export/current/install/',
+                        project.buildDir.path + '/release/install/install/')
+                FileUtils.CopyFile(scmFile.name,
+                        project.buildDir.path + '/export/previous/install/',
+                        project.buildDir.path + '/release/uninstall/uninstall/')
             } else {
-                WhsUtils.CopyFile(whsDBFile.name, project.buildDir.path + '/export/current/uninstall/', project.buildDir.path + '/release/uninstall/uninstall/')
+                FileUtils.CopyFile(scmFile.name,
+                        project.buildDir.path + '/export/current/uninstall/',
+                        project.buildDir.path + '/release/uninstall/uninstall/')
             }
 //            код для поиска номера задачи в СППР, сейчас не используется т.к. svn list не выводит текст последнего коммита
-//            def m = whsDBFile.lastMessage =~ /(#SP\d+)/
+//            def m = sCMFile.lastMessage =~ /(#SP\d+)/
 //            def task = m.group(0)
-            if (showLastCommiter && isInstall) {
-                scriptSections[whsDBFile.installSection] += "\n-- Revision: $whsDBFile.lastRevision Date: $whsDBFile.lastDateFormatted Author: $whsDBFile.lastAuthor \n"
+            if (ext.showLastCommiter && isInstall) {
+                scriptSections[scmFile.scriptSection] += "\n-- Revision: $scmFile.lastRevision " +
+                        "Date: $scmFile.lastDateFormatted " +
+                        "Author: $scmFile.lastAuthor \n"
             }
-            scriptSections[whsDBFile.installSection] += "prompt [!] File: @$scriptType/$whsDBFile.name \n"
-            if (showLastCommiter && isInstall) {
-                scriptSections[whsDBFile.installSection] += "prompt [!] Revision: $whsDBFile.lastRevision Date: $whsDBFile.lastDateFormatted Author: $whsDBFile.lastAuthor \n"
+            scriptSections[scmFile.scriptSection] += "prompt [!] File: @$scriptType.dirName/$scmFile.name \n"
+            if (ext.showLastCommiter && isInstall) {
+                scriptSections[scmFile.scriptSection] += "prompt [!] Revision: $scmFile.lastRevision " +
+                        "Date: $scmFile.lastDateFormatted " +
+                        "Author: $scmFile.lastAuthor \n"
             }
-            scriptSections[whsDBFile.installSection] += "@$scriptType/$whsDBFile.name \n"
+            scriptSections[scmFile.scriptSection] += "@$scriptType.dirName/$scmFile.name \n"
         }
 
         // создадим итоговый скрипт с помощью template движка
-        def previousReleaseNumberShort = previousReleaseNumber ?
-                previousReleaseNumber[0..[29, previousReleaseNumber.length()].min()] :
+        def previousReleaseNumberShort = ext.previousReleaseNumber ?
+                ext.previousReleaseNumber[0..[29, ext.previousReleaseNumber.length()].min()] :
                 ""
-        def releaseNumberShort = releaseNumber ?
-                releaseNumber[0..[29, releaseNumber.length()].min()] :
+        def releaseNumberShort = ext.releaseNumber ?
+                ext.releaseNumber[0..[29, ext.releaseNumber.length()].min()] :
                 ""
         def binding = ["information_created"   : "",
                        "information_statistics": "",
-                       "log_version"           : "${scriptType}_log_" + releaseNumber.replace('.', '_') + ".lst",
+                       "log_version"           : "${scriptType}_log_" + ext.releaseNumber.replace('.', '_') + ".lst",
                        "desc_name"             : "",
                        "desc_version"          : "",
                        "current_version"       : isInstall ? previousReleaseNumberShort : releaseNumberShort,
@@ -202,49 +188,48 @@ class BuildDBScriptTask extends DefaultTask {
             binding[it.key] = it.value
         }
 
-        DBTemplate installTemplate = new DBTemplate(installTemplatePath)
-        installTemplate.makeScript(project.buildDir.path + RELEASE_PATH + "${scriptType}/${scriptType}.sql", binding)
+        DBTemplate installTemplate = new DBTemplate(dbTemplate)
+        installTemplate.makeScript(project.buildDir.path + RELEASE_PATH + "${scriptType.dirName}/${scriptType.dirName}.sql", binding)
 
-        WhsUtils.CreateTarBZ(project.buildDir.getAbsolutePath() + RELEASE_PATH + "${scriptType}/",
-                project.buildDir.getAbsolutePath() + RELEASE_PATH + "${releaseNumber}-${scriptType}.tbz")
+//        FileUtils.CreateTarBZ(project.buildDir.getAbsolutePath() + RELEASE_PATH + "${scriptType}/",
+//                project.buildDir.getAbsolutePath() + RELEASE_PATH + "${releaseNumber}-${scriptType}.tbz")
 
-
-        Tar tar = project.tasks.create("${releaseNumber}-${scriptType}-tartask", Tar)
-        tar.configure {
-            compression = Compression.BZIP2
-            extension = 'tbz'
-            baseName = "${releaseNumber}-${scriptType}-tartask"
-            destinationDir = new File(project.buildDir.path + '/distribution')
-            from(project.buildDir.getAbsolutePath() + RELEASE_PATH + "${scriptType}/")
-        }
-        tar.execute()
+//        Tar tar = project.tasks.create("${ext.releaseNumber}-${scriptType}-tartask", Tar)
+//        tar.configure {
+//            compression = Compression.BZIP2
+//            extension = 'tbz'
+//            baseName = "${releaseNumber}-${scriptType}-tartask"
+//            destinationDir = new File(project.buildDir.path + '/distribution')
+//            from(project.buildDir.getAbsolutePath() + RELEASE_PATH + "${scriptType}/")
+//        }
+//        tar.execute()
 
     }
 
     private void exportFiles() {
 // выгрузим все три директории
         logger.lifecycle('svn export started')
-        exportDir(currentInstallSVNURL, project.buildDir.path + '/export/current/install', currentInstallRevision)
-        if (currentUninstallSVNURL) {
-            exportDir(currentUninstallSVNURL, project.buildDir.path + '/export/current/uninstall', SVNRevision.HEAD)
+        checkoutSVNBranch(ext.currentInstallSVNURL, project.buildDir.path + '/export/current/install', currentInstallRevision)
+        if (ext.currentUninstallSVNURL) {
+            checkoutSVNBranch(ext.currentUninstallSVNURL, project.buildDir.path + '/export/current/uninstall', SVNRevision.HEAD)
         }
-        exportDir(previousInstallSVNURL, project.buildDir.path + '/export/previous/install', previousInstallRevision)
+        checkoutSVNBranch(ext.previousInstallSVNURL, project.buildDir.path + '/export/previous/install', previousInstallRevision)
         logger.lifecycle('svn export done')
     }
 
     private void getChangedFiles() {
         runSvnDiff(
-                previousInstallSVNURL,
+                ext.previousInstallSVNURL,
                 previousInstallRevision,
-                currentInstallSVNURL,
+                ext.currentInstallSVNURL,
                 currentInstallRevision,
                 false)
-        if (currentUninstallSVNURL) {
+        if (ext.currentUninstallSVNURL) {
             currentUninstallRevision = SVNRevision.HEAD
             runSvnDiff(
-                    currentUninstallSVNURL,
-                    getFirstRevision(currentUninstallSVNURL),
-                    currentUninstallSVNURL,
+                    ext.currentUninstallSVNURL,
+                    getFirstRevision(ext.currentUninstallSVNURL),
+                    ext.currentUninstallSVNURL,
                     currentUninstallRevision,
                     true)
         }
@@ -253,31 +238,31 @@ class BuildDBScriptTask extends DefaultTask {
         uninstallFiles = uninstallFiles.entrySet().sort(false, whsDBFileComparatorWildcard).collectEntries()
     }
 
-    def
     private runSvnDiff(String prevURL, SVNRevision prevURLRevision, String curURL, SVNRevision curURLRevision, boolean isUninstallBranch) {
         // сделаем дифф между двумя ветками и ревизиями
         logger.lifecycle('svn diff started')
 
         logger.info("prevURL = $prevURL")
         logger.info("prevURLRevision = $prevURLRevision")
-        logger.info("curURL = $curURL")
+        logger.info("currURL = $curURL")
         logger.info("curURLRevision = $curURLRevision")
         // обработчик команды svn diff, заполняет массив файлов, которые нужно включить в сборку
         ISVNDiffStatusHandler diffStatusHandler = new ISVNDiffStatusHandler() {
+            int wildcardMatchCount
+
             @Override
             void handleDiffStatus(SVNDiffStatus svnDiffStatus) throws SVNException {
                 if (svnDiffStatus.getKind() == SVNNodeKind.FILE) {
-                    def int wildcardMatchCount = 0
-                    def String wildcardsMatched = ''
-                    def DBFile dbFile = new DBFile()
-                    dbFile.name = svnDiffStatus.getPath()
-                    installSectionWildacards.each { sectionName, wildcards ->
+                    wildcardMatchCount = 0
+                    String wildcardsMatched = ''
+                    SCMFile scmFile = new SCMFile(svnDiffStatus.getPath())
+                    ext.wildacards.each { sectionName, wildcards ->
                         wildcards.eachWithIndex { wildcard, i ->
-                            if (FilenameUtils.wildcardMatch(dbFile.name, wildcard as String)) {
-                                dbFile.wildcardID = i as int
+                            if (FilenameUtils.wildcardMatch(scmFile.name, wildcard as String)) {
+                                scmFile.wildcardID = i as int
                                 wildcardMatchCount += 1
                                 wildcardsMatched += wildcard + ', '
-                                dbFile.installSection = sectionName
+                                scmFile.scriptSection = sectionName
                             }
                         }
                     }
@@ -285,29 +270,27 @@ class BuildDBScriptTask extends DefaultTask {
                                                                 SVNStatusType.STATUS_DELETED,
                                                                 SVNStatusType.STATUS_ADDED]) {
                         if (wildcardMatchCount > 1) {
-                            throw new Exception(dbFile.name + " Файл входит в несколько масок: " + wildcardsMatched)
+                            throw new Exception(scmFile.name + " Multiply wildcards matched: " + wildcardsMatched)
                         }
                         if (wildcardMatchCount == 0) {
-                            throw new Exception(dbFile.name + " Файл не входит ни в одну из масок " + svnDiffStatus.getModificationType().toString())
+                            throw new Exception(scmFile.name + " File not matched by any wildcard: " + svnDiffStatus.getModificationType().toString())
                         }
+                    } else {
+                        logger.warn(scmFile.name + " Uncorrect file status : " + svnDiffStatus.getModificationType().toString())
+//                        throw new Exception(scmFile.name + " Неизвестный статус файла : " + svnDiffStatus.getModificationType().toString())
                     }
+
                     if ((svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
                                                                  SVNStatusType.STATUS_ADDED])) {
                         if (isUninstallBranch) {
-                            uninstallFiles[dbFile.name] = dbFile
+                            uninstallFiles[scmFile.name] = scmFile
                         } else {
-                            installFiles[dbFile.name] = dbFile
+                            installFiles[scmFile.name] = scmFile
                         }
                     }
                     if (svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
                                                                 SVNStatusType.STATUS_DELETED]) {
-                        uninstallFiles[dbFile.name] = dbFile
-                    }
-                    if (!(svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
-                                                                  SVNStatusType.STATUS_DELETED,
-                                                                  SVNStatusType.STATUS_ADDED])) {
-                        logger.warn(dbFile.name + " Некорректный статус файла : " + svnDiffStatus.getModificationType().toString())
-//                        throw new Exception(dbFile.name + " Неизвестный статус файла : " + svnDiffStatus.getModificationType().toString())
+                        uninstallFiles[scmFile.name] = scmFile
                     }
                 }
                 logger.info(svnDiffStatus.getModificationType().toString() + ' ' + svnDiffStatus.getFile().toString())
@@ -317,33 +300,32 @@ class BuildDBScriptTask extends DefaultTask {
         logger.lifecycle('svn diff done')
     }
 
-    def private getLastCommitInfo() {
-        // заполним информацию о последнем коммите каждого файла, если требуется
-        if (showLastCommiter) {
-            logger.lifecycle('svn list started')
-            ISVNDirEntryHandler isvnDirEntryHandler = new ISVNDirEntryHandler() {
-                @Override
-                void handleDirEntry(SVNDirEntry svnDirEntry) throws SVNException {
-                    if (installFiles.containsKey(svnDirEntry.getRelativePath())) {
-                        DBFile whsDBFile = installFiles[svnDirEntry.getRelativePath()]
-                        whsDBFile.lastAuthor = svnDirEntry.getAuthor()
-                        whsDBFile.lastRevision = svnDirEntry.getRevision()
-//                    (installFiles[svnDirEntry.getRelativePath()] as DBFile).lastMessage = svnDirEntry.getCommitMessage()
-                        whsDBFile.lastDate = svnDirEntry.getDate()
-                        whsDBFile.lastDateFormatted = svnDirEntry.getDate().format('dd.MM.yyyy ss:mm:HH')
-                    }
+    private void setLastSVNCommitInfo() {
+        // заполним информацию о последнем коммите каждого файла
+        logger.lifecycle('svn list started')
+        ISVNDirEntryHandler isvnDirEntryHandler = new ISVNDirEntryHandler() {
+            @Override
+            void handleDirEntry(SVNDirEntry svnDirEntry) throws SVNException {
+                if (installFiles.containsKey(svnDirEntry.getRelativePath())) {
+                    SCMFile scmFile = installFiles[svnDirEntry.getRelativePath()]
+                    scmFile.lastAuthor = svnDirEntry.getAuthor()
+                    scmFile.lastRevision = svnDirEntry.getRevision()
+//                    (installFiles[svnDirEntry.getRelativePath()] as SCMFile).lastMessage = svnDirEntry.getCommitMessage()
+                    scmFile.lastDate = svnDirEntry.getDate()
+                    scmFile.lastDateFormatted = svnDirEntry.getDate().format('dd.MM.yyyy ss:mm:HH')
                 }
             }
-
-            svnUtils.doList(currentInstallSVNURL, isvnDirEntryHandler)
-            logger.lifecycle('svn list done')
         }
+
+        svnUtils.doList(ext.currentInstallSVNURL, isvnDirEntryHandler)
+        logger.lifecycle('svn list done')
     }
 
-    def SVNRevision getFirstRevision(String svnURL) {
+
+    SVNRevision getFirstRevision(String svnURL) {
         // получение первой ревизии в ветке
-        def long firstRevisionNumber = 0
-        def SVNRevision firstRevision = SVNRevision.HEAD
+        long firstRevisionNumber = 0
+        SVNRevision firstRevision = SVNRevision.HEAD
 
         ISVNLogEntryHandler isvnLogEntryHandler = new ISVNLogEntryHandler() {
             @Override
@@ -353,30 +335,12 @@ class BuildDBScriptTask extends DefaultTask {
             }
         }
 
-        svnUtils.doLog(svnURL, 0, 1, isvnLogEntryHandler)
+        svnUtils.doLog(svnURL, SVNRevision.create(0), 1, isvnLogEntryHandler)
         if (firstRevision != 0) {
             firstRevision = SVNRevision.create(firstRevisionNumber)
         }
         return firstRevision
     }
 
-    // компаратор для сортировки списка файлов. Сперва сортируем по маске файла из настроек, потом по пути к файлу
-    Comparator<Map.Entry<String, DBFile>> whsDBFileComparatorWildcard = new Comparator<Map.Entry<String, DBFile>>() {
-        @Override
-        int compare(Map.Entry<String, DBFile> o1, Map.Entry<String, DBFile> o2) {
-            if (o1.value.wildcardID > o2.value.wildcardID) {
-                return 1
-            }
-            if (o1.value.wildcardID < o2.value.wildcardID) {
-                return -1
-            }
-            if (o1.value.name > o2.value.name) {
-                return 1
-            }
-            if (o1.value.name < o2.value.name) {
-                return -1
-            }
-            return 0
-        }
-    }
+
 }
