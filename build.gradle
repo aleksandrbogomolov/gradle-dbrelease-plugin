@@ -4,7 +4,7 @@ version '0.0.4-TEST'
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 //apply plugin: 'codenarc'
-//apply plugin: 'idea'
+
 
 repositories {
     maven {
@@ -15,10 +15,12 @@ repositories {
 dependencies {
     compile gradleApi()
     compile localGroovy()
-    compile 'org.codehaus.groovy:groovy-all:2.4.7'
-    compile 'org.tmatesoft.svnkit:svnkit:1.8.12'
-    compile 'commons-io:commons-io:2.4'
-    compile 'org.apache.commons:commons-compress:1.10'
+    // раскомментировать если груви не скачается сам при сборке
+//    compile 'org.codehaus.groovy:groovy-all:2.4.7'
+    compile 'org.tmatesoft.svnkit:svnkit:1.8.14'
+    compile 'commons-io:commons-io:2.5'
+    runtime 'org.gperfutils:gprof:0.3.1-groovy-2.4'
+//    compile 'org.apache.commons:commons-compress:1.10'
     testCompile 'junit:junit:4.12'
 }
 
@@ -47,19 +49,3 @@ test {
     systemProperty 'domainUser', project.getProperty('domainUser')
     systemProperty 'domainPassword', project.getProperty('domainPassword')
 }
-
-
-/*configurations {
-    gradleRuntime
-}
-
-idea {
-    module {
-        scopes.RUNTIME.plus += [ configurations.gradleRuntime ]
-    }
-}
-
-dependencies {
-    gradleRuntime files("gradle/wrapper/gradle-wrapper.jar")
-}
-*/

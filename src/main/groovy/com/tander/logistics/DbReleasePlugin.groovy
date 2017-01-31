@@ -1,6 +1,6 @@
 package com.tander.logistics
 
-import com.tander.logistics.tasks.BuildDBScriptTask
+import com.tander.logistics.tasks.BuildDbReleaseTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -9,13 +9,12 @@ import org.gradle.api.Project
  *
  * Плагин для сборки релизов складской логистики
  */
-class DBReleasePlugin implements Plugin<Project> {
+class DbReleasePlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.extensions.create('dbrelease', DBReleaseExtension)
-
-        def buildDBReleaseTask = project.task('buildDBRelease', type: BuildDBScriptTask)
+        project.extensions.create('dbrelease', DbReleaseExtension, project)
+        project.tasks.create('buildDbRelease', BuildDbReleaseTask)
 
 //        def makeInstallTarTask = project.task('makeInstallTar', type: Tar) {
 //            compression = Compression.BZIP2
@@ -28,15 +27,6 @@ class DBReleasePlugin implements Plugin<Project> {
 //            outputs.dir new File(project.buildDir.getAbsolutePath() + 'distribution/')
 //        }
 
-        project.task('generateSQLTemplateFile') << {
-            def templateFile = new File('install.tmpl')
-            if (templateFile.exists()) {
-                throw new Exception('Шаблон ' + templateFile.getAbsolutePath() + ' уже существует')
-            } else {
-                templateFile.write(this.getClass().getResource('/sql-script-templates/install_sql.tmpl').text)
-            }
-        }
-        project.tasks.getByName("generateSQLTemplateFile").description = "Создание локальной версии шаблона install.tmpl"
 
     }
 

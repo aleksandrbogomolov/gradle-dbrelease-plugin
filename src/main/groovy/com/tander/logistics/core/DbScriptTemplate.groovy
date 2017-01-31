@@ -8,20 +8,27 @@ import groovy.text.Template
  *
  * Формирование итоговых скриптов на основании шаблонов
  */
-class DBTemplate {
+class DbScriptTemplate {
     Template template
 
-    DBTemplate(String templateFilePath) {
+
+    DbScriptTemplate(String templateFilePath) {
         File templateFile = new File(templateFilePath)
         SimpleTemplateEngine engine = new SimpleTemplateEngine()
+        template = engine.createTemplate(templateFile)
         if (templateFile.exists()) {
             template = engine.createTemplate(templateFile)
         } else {
-            template = engine.createTemplate(this.getClass().getResource('/sql-script-templates/install_sql.tmpl').text)
+            throw new Exception('Cant find template: ' + templateFile.canonicalPath)
         }
+//        if (templateFile.exists()) {
+//            template = engine.createTemplate(templateFile)
+//        } else {
+//            template = engine.createTemplate(this.getClass().getResource('/sql-script-templates/install_sql.tmpl').text)
+//        }
     }
 
-    DBTemplate(File templateFile) {
+    DbScriptTemplate(File templateFile) {
         SimpleTemplateEngine engine = new SimpleTemplateEngine()
         if (templateFile.exists()) {
             template = engine.createTemplate(templateFile)
