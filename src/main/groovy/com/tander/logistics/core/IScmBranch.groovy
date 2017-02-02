@@ -11,5 +11,7 @@ interface IScmBranch {
 
     String getLastRevision()
 
+    String getRevisionName()
+
     void export(String path)
 }

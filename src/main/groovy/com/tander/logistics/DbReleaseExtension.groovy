@@ -20,8 +20,8 @@ class DbReleaseExtension {
     String currRevision
     String prevRevision
 
-    boolean isCheckReleaseNumberNeeded
-    boolean isUpdateReleaseNumberNeeded
+    String isCheckReleaseNumberNeeded
+    String isUpdateReleaseNumberNeeded
 
     String buildTaskNumber
 

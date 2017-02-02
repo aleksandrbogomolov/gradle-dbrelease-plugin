@@ -38,14 +38,15 @@ class BuildDbReleaseTask extends DefaultTask {
     @TaskAction
     void run() {
         File releaseDir = new File(project.buildDir.getPath() + RELEASE_PATH)
-        releaseDir.deleteDir();
+        releaseDir.deleteDir()
 
         DbRelease dbRelease = new DbReleaseSvn(project)
 
         dbRelease.setChangedFilesByDiff()
         dbRelease.setLastCommitInfo()
         dbRelease.exportChangedFilesToDir()
-        dbRelease.assemblyScript()
+        dbRelease.scriptInstall.assemblyScript()
+        dbRelease.scriptUninstall.assemblyScript()
 
     }
 }

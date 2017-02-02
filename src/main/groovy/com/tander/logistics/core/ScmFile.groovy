@@ -68,7 +68,7 @@ class ScmFile {
         binding.clear()
         binding["revision"] = revision
         binding["task"] = taskNumber
-        binding["date"] = date.format('dd.MM.yyyy HH:mm:ss')
+        binding["date"] = date.format("dd.MM.yyyy HH:mm:ss z", TimeZone.getTimeZone('UTC'))
         binding["author"] = author
         binding["type"] = scriptType.dirName
         binding["name"] = name

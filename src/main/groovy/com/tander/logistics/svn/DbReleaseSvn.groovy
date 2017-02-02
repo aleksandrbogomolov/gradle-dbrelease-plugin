@@ -1,6 +1,7 @@
 package com.tander.logistics.svn
 
 import com.tander.logistics.core.DbRelease
+import com.tander.logistics.core.DbReleaseScript
 import com.tander.logistics.core.ScmFile
 import com.tander.logistics.core.ScriptType
 import org.gradle.api.Project
@@ -22,8 +23,6 @@ import org.tmatesoft.svn.core.wc.SVNStatusType
 class DbReleaseSvn extends DbRelease {
     SvnUtils svnUtils
 
-    String INSTALL_URL_POSTFIX = "/install"
-    String UNINSTALL_URL_POSTFIX = "/uninstall"
     SvnBranch currBranch
     SvnBranch prevBranch
 
@@ -33,6 +32,13 @@ class DbReleaseSvn extends DbRelease {
 
         currBranch = new SvnBranch(svnUtils, null, null, null)
         prevBranch = new SvnBranch(svnUtils, null, null, null)
+
+        scriptInstall.currBranch = currBranch
+        scriptInstall.prevBranch = prevBranch
+
+        scriptInstall.prevBranch = currBranch
+        scriptInstall.currBranch = prevBranch
+
         if (ext.currUrl) {
             currBranch.url = ext.currUrl
         } else {
@@ -49,7 +55,9 @@ class DbReleaseSvn extends DbRelease {
         if (ext.releaseVersion) {
             currBranch.version = ext.releaseVersion
         } else {
-            currBranch.version = currBranch.getLastPathSegmentFromUrl()[0..29]
+            ext.releaseVersion = currBranch.getLastPathSegmentFromUrl()
+            currBranch.version = ext.releaseVersion[0..29]
+
         }
 
         if (ext.prevUrl) {
@@ -72,14 +80,7 @@ class DbReleaseSvn extends DbRelease {
     void setLastCommitInfo() {
         ScmFileLogEntryHandler logEntryHandler = new ScmFileLogEntryHandler()
 
-        ISVNLogEntryHandler handler = new ISVNLogEntryHandler() {
-            @Override
-            void handleLogEntry(SVNLogEntry svnLogEntry) throws SVNException {
-                logger.lifecycle(svnLogEntry.getMessage().toString())
-            }
-        }
-
-        scmFilesInstall.each { String fileName, ScmFile scmFile ->
+        scriptInstall.scmFiles.each { String fileName, ScmFile scmFile ->
             logEntryHandler.scmFile = scmFile
             svnUtils.doLog(scmFile.url, currBranch.revision, svnUtils.firstRevision, 1, logEntryHandler)
         }
@@ -104,10 +105,10 @@ class DbReleaseSvn extends DbRelease {
                     }
 
                     if (!(svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_DELETED])) {
-                        scmFilesInstall[scmFile.name] = scmFile
+                        scriptInstall.scmFiles[scmFile.name] = scmFile
                     }
                     if (!(svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_ADDED])) {
-                        scmFilesUninstall[scmFile.name] = scmFile
+                        scriptUninstall.scmFiles[scmFile.name] = scmFile
                     }
                 }
                 logger.info(svnDiffStatus.getModificationType().toString() + ' ' + svnDiffStatus.getFile().toString())
@@ -125,8 +126,8 @@ class DbReleaseSvn extends DbRelease {
                 diffStatusHandler)
 
         // и отсортируем полученные списки
-        scmFilesInstall = scmFilesInstall.entrySet().sort(false, scmFileComparatorWildcard).collectEntries()
-        scmFilesUninstall = scmFilesUninstall.entrySet().sort(false, scmFileComparatorWildcard).collectEntries()
+        scriptInstall.sortScmFiles()
+        scriptUninstall.sortScmFiles()
     }
 
     void exportChangedFilesToDir() {
@@ -142,13 +143,13 @@ class DbReleaseSvn extends DbRelease {
             }
         }
 
-        scmFilesInstall.each { String fileName, ScmFile scmFile ->
+        scriptInstall.scmFiles.each { String fileName, ScmFile scmFile ->
             svnUtils.doExport(scmFile.url,
                     project.buildDir.path + '/install/' + scmFile.name,
                     currBranch.revision,
                     dispatcher)
         }
-        scmFilesUninstall.each { String fileName, ScmFile scmFile ->
+        scriptUninstall.scmFiles.each { String fileName, ScmFile scmFile ->
             svnUtils.doExport(scmFile.url,
                     project.buildDir.path + '/uninstall/' + scmFile.name,
                     prevBranch.revision,
@@ -156,42 +157,5 @@ class DbReleaseSvn extends DbRelease {
         }
     }
 
-    String getStat() {
-        String stat = "prompt [INFO] Statistics\n"
-        def cnt = scmFilesInstall.countBy { it.value.wildcardsMatched }
-        wildacards["section"].each {
-            stat += "prompt ...[STAT][${it.toString()}] - ${cnt[it.toString()]}\n"
-        }
-        stat += "prompt [INFO] Statistics\n"
-    }
-
-    @Override
-    LinkedHashMap makeBinding(ScriptType type) {
-        LinkedHashMap binding = []
-
-        binding.clear()
-
-        binding["TMPL_LOG_VERSION"] = "${type.dirName}_log_${currBranch.version}.lst"
-        binding["TMPL_DESC_VERSION"] = "${type.dirName} assembly ${currBranch.version}. Installing Software DC Oracle"
-        binding["TMPL_CONFIG_CURRENT_VERSION"] = "${prevBranch.version}"
-        binding["TMPL_CONFIG_NEW_VERSION"] = "${currBranch.version}"
-        binding["TMPL_CONFIG_TASK"] = "${ext.buildTaskNumber}"
-        binding["TMPL_CONFIG_ASSEMBLY"] = "${ext.taskNumber}"
-        binding["TMPL_CONFIG_DATECREATED"] = "${new Date().format('dd.MM.yyyy HH:mm:ss')}"
-        binding["TMPL_CONFIG_USERCREATED"] = "${ext.user}"
-        binding["TMPL_CONFIG_REVISION"] = "${currBranch.revision.toString()}"
-        binding["TMPL_CONFIG_CHECKVERS"] = "${ext.isCheckReleaseNumberNeeded}"
-        binding["TMPL_CONFIG_UPDATEVERS"] = "${ext.isUpdateReleaseNumberNeeded}"
-        binding["TMPL_CONFIG_RECOMPILING"] = "${scriptSections["TMPL_SCRIPT_AFTER_INSTALL"].toString().length() ? "1" : "0"}"
-        binding["TMPL_CONFIG_LISTNODEBUGPACK"] = ""
-        binding["TMPL_CONFIG_TOTALBLOCKS"] = "${scmFilesInstall.size()}"
-        binding["TMPL_INFORMATION_SATISTICS"] = getStat()
-        binding["TMPL_INFORMATION_CREATED"] = """
-prompt BranchCurrent: ${currBranch.url} -revision: ${currBranch.revision}
-prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.revision}
-
-"""
-        return binding
-    }
 
 }

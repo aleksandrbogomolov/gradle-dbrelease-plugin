@@ -7,9 +7,9 @@ import org.apache.commons.io.FilenameUtils
  *
  * Утилиты для сборки
  */
-public class FileUtils {
+class FileUtils {
 
-    public static void CopyFile(String filePath, String sourceDirPath, String targetDirPath) {
+    static void CopyFile(String filePath, String sourceDirPath, String targetDirPath) {
         def sourceFile = new File(sourceDirPath + filePath)
         if (sourceFile.exists()) {
 //            println FilenameUtils.getFullPath(FilenameUtils.normalize(targetDirPath + filePath))

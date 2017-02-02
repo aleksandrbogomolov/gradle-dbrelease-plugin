@@ -13,5 +13,5 @@ enum ScriptType {
         this.dirName = dirName
     }
 
-    final String dirName;
+    final String dirName
 }

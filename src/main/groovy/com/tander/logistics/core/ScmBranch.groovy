@@ -25,5 +25,4 @@ abstract class ScmBranch {
         def segments = getPathSegmentsFromUrl()
         return segments[segments.length-1]
     }
-
 }

@@ -27,6 +27,11 @@ class SvnBranch extends ScmBranch implements IScmBranch{
     }
 
     @Override
+    String getRevisionName() {
+        return revision.toString()
+    }
+
+    @Override
     void export(String path) {
 
         ISVNEventHandler dispatcher = new ISVNEventHandler() {
@@ -50,7 +55,7 @@ class SvnBranch extends ScmBranch implements IScmBranch{
             }
         } else {
             File exportDir = new File(path)
-            exportDir.deleteDir();
+            exportDir.deleteDir()
             logger.lifecycle("checkout URL $url to dir $path")
             svnUtils.doCheckout(url, path, revision, dispatcher)
         }
