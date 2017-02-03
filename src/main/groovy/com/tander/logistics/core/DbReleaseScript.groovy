@@ -4,16 +4,20 @@ import com.tander.logistics.DbReleaseExtension
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.Project
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 
 
 /**
  * Created by durov_an on 31.01.2017.
  */
 class DbReleaseScript {
+    protected Logger logger
 
     ScriptType type
     Project project
     DbReleaseExtension ext
+    DbRelease release
 
     LinkedHashMap<String, ScmFile> scmFiles = []
     LinkedHashMap scriptSections = []
@@ -25,12 +29,14 @@ class DbReleaseScript {
     File scmFileTemplateFile
     Template scmFileTemplate
 
-    DbReleaseScript(ScriptType scriptType, Project project) {
+    DbReleaseScript(ScriptType scriptType, DbRelease release, Project project) {
+        logger = Logging.getLogger(this.class)
         this.type = scriptType
         this.project = project
         this.ext = project.dbrelease
+        this.release = release
 
-        scmFileTemplateFile = new File(ext.scmFileTemplate)
+        scmFileTemplateFile = new File(project.projectDir.toString(), ext.scmFileTemplate)
         if (!scmFileTemplateFile.exists()) {
             throw new Exception("Template not exists: " + scmFileTemplateFile.canonicalPath)
         }
@@ -56,7 +62,6 @@ class DbReleaseScript {
         LinkedHashMap binding = []
 
         binding.clear()
-
         binding["TMPL_LOG_VERSION"] = "${type.dirName}_log_${currBranch.version}.lst"
         binding["TMPL_DESC_VERSION"] = "${type.dirName} assembly ${currBranch.version}. Installing Software DC Oracle"
         binding["TMPL_CONFIG_CURRENT_VERSION"] = "${prevBranch.version}"
@@ -82,8 +87,9 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
 
 
     void assemblyScript() {
+        logger.lifecycle("--------------- generate template start ---------------")
         // заполним скрипты по секциям для вставки в ${type}.sql и скопируем файлы
-        ext.wildacards.each {
+        ext.sectionWildacards.each {
             scriptSections[it.key] = ''
         }
 
@@ -100,8 +106,9 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
             binding[it.key] = it.value
         }
 
-        DbScriptTemplate installTemplate = new DbScriptTemplate(ext.dbReleaseTemplate)
-        installTemplate.makeScript(project.buildDir.path + "/${type.dirName}.sql", binding)
+        DbScriptTemplate installTemplate = new DbScriptTemplate(new File(project.projectDir, ext.dbReleaseTemplate))
+        installTemplate.makeScript(release.releaseDir.path + "/${type.dirName}.sql", binding)
+        logger.lifecycle("--------------- generate template finish ---------------")
     }
 
     // компаратор для сортировки списка файлов. Сперва сортируем по маске файла из настроек, потом по пути к файлу

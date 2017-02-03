@@ -66,10 +66,13 @@ class ScmFile {
 
     LinkedHashMap makeBinding() {
         binding.clear()
-        binding["revision"] = revision
-        binding["task"] = taskNumber
-        binding["date"] = date.format("dd.MM.yyyy HH:mm:ss z", TimeZone.getTimeZone('UTC'))
-        binding["author"] = author
+        binding["showRevisionInfo"] = scriptType == ScriptType.stInstall
+        if (scriptType == ScriptType.stInstall) {
+            binding["revision"] = revision
+            binding["task"] = taskNumber
+            binding["date"] = date.format("dd.MM.yyyy HH:mm:ss z", TimeZone.getTimeZone('UTC'))
+            binding["author"] = author
+        }
         binding["type"] = scriptType.dirName
         binding["name"] = name
         return binding

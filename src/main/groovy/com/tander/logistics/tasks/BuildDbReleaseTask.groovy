@@ -28,7 +28,7 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil
 
 class BuildDbReleaseTask extends DefaultTask {
 
-    String RELEASE_PATH = '/release/'
+
 
     BuildDbReleaseTask() {
         group = "build"
@@ -37,8 +37,6 @@ class BuildDbReleaseTask extends DefaultTask {
 
     @TaskAction
     void run() {
-        File releaseDir = new File(project.buildDir.getPath() + RELEASE_PATH)
-        releaseDir.deleteDir()
 
         DbRelease dbRelease = new DbReleaseSvn(project)
 

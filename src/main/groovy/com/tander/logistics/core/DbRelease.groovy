@@ -1,8 +1,6 @@
 package com.tander.logistics.core
 
 import com.tander.logistics.DbReleaseExtension
-import groovy.text.SimpleTemplateEngine
-import groovy.text.Template
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -13,6 +11,8 @@ import org.gradle.api.logging.Logging
  */
 abstract class DbRelease {
     protected Logger logger
+    String RELEASE_PATH = 'dbrelease'
+    File releaseDir
 
     Project project
     DbReleaseExtension ext
@@ -26,13 +26,18 @@ abstract class DbRelease {
     DbRelease(Project project) {
         this.project = project
         this.ext = project.dbrelease
-        this.wildacards = ext.wildacards
+        this.wildacards = ext.sectionWildacards
+
 
         logger = Logging.getLogger(this.class)
         projectDir = project.projectDir
 
-        scriptInstall = new DbReleaseScript(ScriptType.stInstall, project)
-        scriptUninstall = new DbReleaseScript(ScriptType.stUninstall, project)
+        releaseDir = new File(project.buildDir.getPath(), RELEASE_PATH)
+        releaseDir.deleteDir()
+//        releaseDir
+
+        scriptInstall = new DbReleaseScript(ScriptType.stInstall, this, project)
+        scriptUninstall = new DbReleaseScript(ScriptType.stUninstall, this, project)
     }
 
 }

@@ -14,6 +14,7 @@ import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
 import org.tmatesoft.svn.core.wc.ISVNEventHandler
 import org.tmatesoft.svn.core.wc.SVNDiffStatus
 import org.tmatesoft.svn.core.wc.SVNEvent
+import org.tmatesoft.svn.core.wc.SVNEventAction
 import org.tmatesoft.svn.core.wc.SVNRevision
 import org.tmatesoft.svn.core.wc.SVNStatusType
 
@@ -28,6 +29,8 @@ class DbReleaseSvn extends DbRelease {
 
     DbReleaseSvn(Project project) {
         super(project)
+
+
         this.svnUtils = new SvnUtils(ext.user, ext.password.toCharArray())
 
         currBranch = new SvnBranch(svnUtils, null, null, null)
@@ -36,8 +39,8 @@ class DbReleaseSvn extends DbRelease {
         scriptInstall.currBranch = currBranch
         scriptInstall.prevBranch = prevBranch
 
-        scriptInstall.prevBranch = currBranch
-        scriptInstall.currBranch = prevBranch
+        scriptUninstall.prevBranch = currBranch
+        scriptUninstall.currBranch = prevBranch
 
         if (ext.currUrl) {
             currBranch.url = ext.currUrl
@@ -80,10 +83,15 @@ class DbReleaseSvn extends DbRelease {
     void setLastCommitInfo() {
         ScmFileLogEntryHandler logEntryHandler = new ScmFileLogEntryHandler()
 
+        logger.lifecycle("--------------- get revision info start ---------------")
+
         scriptInstall.scmFiles.each { String fileName, ScmFile scmFile ->
             logEntryHandler.scmFile = scmFile
+            logEntryHandler.logger = logger
             svnUtils.doLog(scmFile.url, currBranch.revision, svnUtils.firstRevision, 1, logEntryHandler)
         }
+
+        logger.lifecycle("--------------- get revision info finish ---------------")
     }
 
     void setChangedFilesByDiff() {
@@ -101,7 +109,7 @@ class DbReleaseSvn extends DbRelease {
                                                                 SVNStatusType.STATUS_ADDED]) {
                         scmFile.checkWildcards(wildacards)
                     } else {
-                        logger.warn(scmFile.name + "Uncorrected file status : " + svnDiffStatus.getModificationType().toString())
+                        logger.warn(scmFile.name + " Uncorrected file status : " + svnDiffStatus.getModificationType().toString())
                     }
 
                     if (!(svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_DELETED])) {
@@ -114,6 +122,7 @@ class DbReleaseSvn extends DbRelease {
                 logger.info(svnDiffStatus.getModificationType().toString() + ' ' + svnDiffStatus.getFile().toString())
             }
         }
+        logger.lifecycle("--------------- diff start ---------------")
         svnUtils.doDiffStatus(prevBranch.getInstallUrl(),
                 prevBranch.revision,
                 currBranch.getInstallUrl(),
@@ -124,6 +133,9 @@ class DbReleaseSvn extends DbRelease {
                 prevBranch.getUninstallUrl(),
                 prevBranch.revision,
                 diffStatusHandler)
+        logger.lifecycle(" files to install: " + scriptInstall.scmFiles.size())
+        logger.lifecycle(" files to uninstall: " + scriptUninstall.scmFiles.size())
+        logger.lifecycle("--------------- diff finish ---------------")
 
         // и отсортируем полученные списки
         scriptInstall.sortScmFiles()
@@ -131,11 +143,13 @@ class DbReleaseSvn extends DbRelease {
     }
 
     void exportChangedFilesToDir() {
-
+        logger.lifecycle("--------------- export start ---------------")
         ISVNEventHandler dispatcher = new ISVNEventHandler() {
             @Override
             void handleEvent(SVNEvent svnEvent, double v) throws SVNException {
-//                logger.lifecycle("exporting file " + svnEvent.getFile().toString())
+                if (svnEvent.getAction() == SVNEventAction.UPDATE_COMPLETED) {
+                    logger.lifecycle(" export file " + svnEvent.getFile().toString())
+                }
             }
 
             @Override
@@ -145,16 +159,17 @@ class DbReleaseSvn extends DbRelease {
 
         scriptInstall.scmFiles.each { String fileName, ScmFile scmFile ->
             svnUtils.doExport(scmFile.url,
-                    project.buildDir.path + '/install/' + scmFile.name,
+                    releaseDir.path + '/install/' + scmFile.name,
                     currBranch.revision,
                     dispatcher)
         }
         scriptUninstall.scmFiles.each { String fileName, ScmFile scmFile ->
             svnUtils.doExport(scmFile.url,
-                    project.buildDir.path + '/uninstall/' + scmFile.name,
+                    releaseDir.path + '/uninstall/' + scmFile.name,
                     prevBranch.revision,
                     dispatcher)
         }
+        logger.lifecycle("--------------- export finish ---------------")
     }
 
 

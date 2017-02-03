@@ -19,7 +19,7 @@ dependencies {
 //    compile 'org.codehaus.groovy:groovy-all:2.4.7'
     compile 'org.tmatesoft.svnkit:svnkit:1.8.14'
     compile 'commons-io:commons-io:2.5'
-//    runtime 'org.gperfutils:gprof:0.3.1-groovy-2.4'
+    testCompile 'org.gperfutils:gprof:0.3.1-groovy-2.4'
 //    compile 'org.apache.commons:commons-compress:1.10'
     testCompile 'junit:junit:4.12'
 }
@@ -48,4 +48,8 @@ publishing {
 test {
     systemProperty 'domainUser', project.getProperty('domainUser')
     systemProperty 'domainPassword', project.getProperty('domainPassword')
+
+    useJUnit {
+        excludeCategories 'com.tander.logistics.categories.Perfomance'
+    }
 }

@@ -26,7 +26,7 @@ class DbReleaseExtension {
     String buildTaskNumber
 
 
-    def wildacards = [
+    def sectionWildacards = [
             'TMPL_SCRIPT_BEFORE_INSTALL': [
                     '*/before/*.sql',
                     '*.seq',
