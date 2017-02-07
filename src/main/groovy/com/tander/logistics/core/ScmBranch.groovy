@@ -6,7 +6,7 @@ import org.gradle.api.logging.Logging
 /**
  * Created by durov_an on 18.01.2017.
  */
-abstract class ScmBranch implements IScmBranch{
+abstract class ScmBranch implements IScmBranch {
     protected Logger logger
 
     String url
@@ -16,14 +16,14 @@ abstract class ScmBranch implements IScmBranch{
         logger = Logging.getLogger(this.class)
     }
 
-    def getPathSegmentsFromUrl() {
-        def segments = (new URL(url)).getPath().toString().split("/")
+    String[] getPathSegmentsFromUrl() {
+        String[] segments = (new URL(url)).getPath().toString().split("/")
         return segments
     }
 
-    def getLastPathSegmentFromUrl() {
-        def segments = getPathSegmentsFromUrl()
-        return segments[segments.length-1]
+    String getLastPathSegmentFromUrl() {
+        String[] segments = getPathSegmentsFromUrl()
+        return segments[segments.length - 1]
     }
 
 

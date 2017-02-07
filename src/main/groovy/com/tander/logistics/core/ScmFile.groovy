@@ -49,9 +49,9 @@ class ScmFile {
         wildacards.each { sectionName, wildcards ->
             wildcards.eachWithIndex { wildcard, i ->
                 if (FilenameUtils.wildcardMatch(name, wildcard as String)) {
-                    wildcardId = i
+                    wildcardId = i as int
                     wildcardMatchCount += 1
-                    wildcardsMatched += wildcard + ', '
+                    wildcardsMatched += (wildcard as String) + ', '
                     scriptSection = sectionName
                 }
             }

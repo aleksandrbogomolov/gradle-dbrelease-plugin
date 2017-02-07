@@ -22,17 +22,21 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil
  * для работы с SVN
  */
 
-
 class SvnUtils {
 
     ISVNAuthenticationManager authManager
-    SVNClientManager svnClientManager
+    SVNClientManager clientManager
     SVNRevision firstRevision
 
     SvnUtils(String username, char[] password) {
         DAVRepositoryFactory.setup()
         authManager = SVNWCUtil.createDefaultAuthenticationManager(username, password)
+//        authManager = SVNWCUtil.createDefaultAuthenticationManager(null, username, password, true)
+//        authManager = SVNWCUtil.createDefaultAuthenticationManager()
+//        println SVNWCUtil.getDefaultConfigurationDirectory().path
+//        authManager.setAuthenticationProvider()
         firstRevision = SVNRevision.create(1)
+        clientManager = SVNClientManager.newInstance(SVNWCUtil.createDefaultOptions(false), authManager)
     }
 
 
@@ -77,7 +81,8 @@ class SvnUtils {
     }
 
     def doLog(String svnUrl, SVNRevision startRevision, SVNRevision endRevision, long limit, ISVNLogEntryHandler isvnLogEntryHandler) {
-        SVNLogClient logClient = new SVNLogClient(getAuthManager(), SVNWCUtil.createDefaultOptions(true))
+        SVNLogClient logClient = clientManager.getLogClient()
+//        SVNLogClient logClient = new SVNLogClient(getAuthManager(), SVNWCUtil.createDefaultOptions(true))
         logClient.doLog(
                 SVNURL.parseURIEncoded(svnUrl),
                 null,

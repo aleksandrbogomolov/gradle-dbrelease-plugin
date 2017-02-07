@@ -13,8 +13,12 @@ class DbReleasePlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.extensions.create('dbrelease', DbReleaseExtension, project)
+        DbReleaseExtension dbRelease = project.extensions.create('dbrelease', DbReleaseExtension, project)
         project.tasks.create('buildDbRelease', BuildDbReleaseTask)
+
+        project.afterEvaluate {
+            dbRelease.init(project)
+        }
 
 //        def makeInstallTarTask = project.task('makeInstallTar', type: Tar) {
 //            compression = Compression.BZIP2

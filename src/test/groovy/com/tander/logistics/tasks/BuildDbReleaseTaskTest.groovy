@@ -30,8 +30,10 @@ class BuildDbReleaseTaskTest extends GroovyTestCase {
         plugin.apply(project)
         task = project.tasks.findByName("buildDbRelease") as BuildDbReleaseTask
         DbReleaseExtension ext = project.extensions.findByType(DbReleaseExtension)
-        ext.user = System.getProperty('domainUser')
-        ext.password = System.getProperty('domainPassword')
+//        ext.user = System.getProperty('domainUser')
+//        ext.password = System.getProperty('domainPassword')
+        ext.user = 'durov_an'
+        ext.password = ''
         ext.prevRevision = "166358"
 
         profiler = new Profiler()
@@ -45,9 +47,10 @@ class BuildDbReleaseTaskTest extends GroovyTestCase {
 //        profiler.report.prettyPrint()
     }
 
-//    @Category(com.tander.logistics.categories.Perfomance)
+    @Category(Perfomance)
     @Test
-    void profileBuildDbRelease() {
+    void testProfileBuildDbRelease() {
+        setUp()
         profiler.start()
         task.run()
         profiler.stop()

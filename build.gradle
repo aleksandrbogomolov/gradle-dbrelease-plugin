@@ -1,5 +1,5 @@
 group 'com.tander.logistics'
-version '0.0.4-TEST'
+version '0.0.4'
 
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
@@ -24,6 +24,10 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
 publishing {
     repositories {
         maven {
@@ -46,8 +50,12 @@ publishing {
 }
 
 test {
-    systemProperty 'domainUser', project.getProperty('domainUser')
-    systemProperty 'domainPassword', project.getProperty('domainPassword')
+    if (project.hasProperty('domainUser')) {
+        systemProperty 'domainUser', project.getProperty('domainUser')
+    }
+    if (project.hasProperty('domainPassword')) {
+        systemProperty 'domainPassword', project.getProperty('domainPassword')
+    }
 
     useJUnit {
         excludeCategories 'com.tander.logistics.categories.Perfomance'

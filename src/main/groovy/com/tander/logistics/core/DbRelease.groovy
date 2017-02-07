@@ -25,7 +25,7 @@ abstract class DbRelease {
 
     DbRelease(Project project) {
         this.project = project
-        this.ext = project.dbrelease
+        this.ext = project.extensions.findByName('dbrelease') as DbReleaseExtension
         this.wildacards = ext.sectionWildacards
 
 

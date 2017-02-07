@@ -1,14 +1,10 @@
 package com.tander.logistics.svn
 
 import com.tander.logistics.core.DbRelease
-import com.tander.logistics.core.DbReleaseScript
 import com.tander.logistics.core.ScmFile
-import com.tander.logistics.core.ScriptType
 import org.gradle.api.Project
-import org.tmatesoft.svn.core.ISVNLogEntryHandler
 import org.tmatesoft.svn.core.SVNCancelException
 import org.tmatesoft.svn.core.SVNException
-import org.tmatesoft.svn.core.SVNLogEntry
 import org.tmatesoft.svn.core.SVNNodeKind
 import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
 import org.tmatesoft.svn.core.wc.ISVNEventHandler

@@ -22,12 +22,9 @@ class DbReleasePluginTest extends GroovyTestCase {
     }
 
     void testApply() {
-
         DbReleaseExtension ext = project.extensions.findByType(DbReleaseExtension)
+        ext.isTest = true
         "execution of buildDbRelease task is success"()
-
-
-
     }
     @Test
     def "execution of buildDbRelease task is success"() {

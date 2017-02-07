@@ -20,7 +20,7 @@ class DbReleaseScript {
     DbRelease release
 
     LinkedHashMap<String, ScmFile> scmFiles = []
-    LinkedHashMap scriptSections = []
+    LinkedHashMap<String, String> scriptSections = []
 
     ScmBranch currBranch
     ScmBranch prevBranch
@@ -33,7 +33,7 @@ class DbReleaseScript {
         logger = Logging.getLogger(this.class)
         this.type = scriptType
         this.project = project
-        this.ext = project.dbrelease
+        this.ext = release.ext
         this.release = release
 
         scmFileTemplateFile = new File(project.projectDir.toString(), ext.scmFileTemplate)
@@ -90,7 +90,7 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         logger.lifecycle("--------------- generate template start ---------------")
         // заполним скрипты по секциям для вставки в ${type}.sql и скопируем файлы
         ext.sectionWildacards.each {
-            scriptSections[it.key] = ''
+            scriptSections[it.key as String] = ''
         }
 
         scmFiles.each { String fileName, ScmFile scmFile ->
