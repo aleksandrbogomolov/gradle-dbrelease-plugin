@@ -9,7 +9,7 @@ import groovy.swing.SwingBuilder
  */
 class UiUtils {
     static String promptPassword(String windowTitle, String editLabel) {
-        String result
+        String result = ''
         if (System.console() == null) {
             new SwingBuilder().edt {
                 lookAndFeel 'nimbus'
@@ -35,5 +35,6 @@ class UiUtils {
         } else {
             result = System.console().readPassword("\n $editLabel").toString()
         }
+        return result
     }
 }
