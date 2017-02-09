@@ -109,6 +109,10 @@ class DbReleaseExtension {
         if (project.hasProperty("domainPassword")) {
             password = project.property("domainPassword")
         }
+
+        if (!password) {
+            password = ''
+        }
     }
 
     DbReleaseExtension(Project project) {

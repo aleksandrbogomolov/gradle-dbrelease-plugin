@@ -3,10 +3,7 @@ package com.tander.logistics.tasks
 import com.tander.logistics.DbReleaseExtension
 import com.tander.logistics.core.DbRelease
 import com.tander.logistics.svn.DbReleaseSvn
-import com.tander.logistics.ui.UiUtils
-import groovy.swing.SwingBuilder
 import org.gradle.api.DefaultTask
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -28,16 +25,16 @@ class BuildDbReleaseTask extends DefaultTask {
     void run() {
         this.ext = project.extensions.findByName('dbrelease') as DbReleaseExtension
 
-        if (project.hasProperty("domainPassword")) {
-            ext.password = project.property("domainPassword")
-        } else if (!ext.isTest) {
-            ext.password = UiUtils.promptPassword(
-                    "Please enter password",
-                    "Please enter password for user $ext.user:")
-        }
-        if (ext.password.size() <= 0) {
-            throw new InvalidUserDataException("You must enter a password to proceed.")
-        }
+//        if (project.hasProperty("domainPassword")) {
+//            ext.password = project.property("domainPassword")
+//        } else if (!ext.isTest) {
+//            ext.password = UiUtils.promptPassword(
+//                    "Please enter password",
+//                    "Please enter password for user $ext.user:")
+//        }
+//        if (ext.password.size() <= 0) {
+//            throw new InvalidUserDataException("You must enter a password to proceed.")
+//        }
 
         DbRelease dbRelease = new DbReleaseSvn(project)
 
