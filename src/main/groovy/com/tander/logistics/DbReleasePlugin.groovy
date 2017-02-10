@@ -1,6 +1,8 @@
 package com.tander.logistics
 
+import com.tander.logistics.tasks.AssemblyDbRelease
 import com.tander.logistics.tasks.BuildDbReleaseTask
+import com.tander.logistics.tasks.TarDbRelease
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -15,6 +17,11 @@ class DbReleasePlugin implements Plugin<Project> {
     void apply(Project project) {
         DbReleaseExtension dbRelease = project.extensions.create('dbrelease', DbReleaseExtension, project)
         project.tasks.create('buildDbRelease', BuildDbReleaseTask)
+
+        project.tasks.create('tarInstall', TarDbRelease)
+        project.tasks.create('tarUninstall', TarDbRelease)
+
+        project.tasks.create('assemblyDbRelease', AssemblyDbRelease)
 
         project.afterEvaluate {
             dbRelease.init(project)
