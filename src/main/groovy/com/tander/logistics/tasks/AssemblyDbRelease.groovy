@@ -10,7 +10,6 @@ class AssemblyDbRelease extends DefaultTask {
     AssemblyDbRelease() {
         group = 'distribution'
         description = 'Generate tbz for install and uninstall DB release'
-        dependsOn project.tasks.findByName("tarInstall"),
-                project.tasks.findByName("tarUninstall")
+        dependsOn project.tasks.findByName("tarInstall"), project.tasks.findByName("tarUninstall")
     }
 }

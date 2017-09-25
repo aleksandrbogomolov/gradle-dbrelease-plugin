@@ -1,16 +1,14 @@
 package com.tander.logistics
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import groovy.swing.SwingBuilder
 
 /**
  * Created by durov_an on 10.02.2016.
  *
  * Настройки плагина
  */
-
 class DbReleaseExtension {
+
     Project project
     Boolean isTest = false
     String scmType
@@ -59,7 +57,6 @@ class DbReleaseExtension {
             'tps': 'drop type'
     ]
 
-
     String dbReleaseTemplate = 'dbrelease.sql.tmpl'
     String scmFileTemplate = 'scmfile.sql.tmpl'
 
@@ -80,7 +77,6 @@ class DbReleaseExtension {
             prevRevision = project.property("prevRevision")
         }
 
-
         if (project.hasProperty("taskNumber")) {
             taskNumber = project.property("taskNumber")
         } else {
@@ -91,7 +87,6 @@ class DbReleaseExtension {
             releaseVersion = project.property("releaseVersion")
         }
 
-
         if (project.hasProperty("isCheckReleaseNumberNeeded")) {
             isCheckReleaseNumberNeeded = project.property("isCheckReleaseNumberNeeded")
         }
@@ -100,7 +95,6 @@ class DbReleaseExtension {
         }
 
         buildTaskNumber = buildTaskNumber ?: "build.gradle"
-
 
         if (project.hasProperty("domainUser")) {
             user = project.property("domainUser")

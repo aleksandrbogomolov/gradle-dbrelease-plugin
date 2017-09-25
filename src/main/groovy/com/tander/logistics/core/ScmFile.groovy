@@ -10,6 +10,7 @@ import org.gradle.api.logging.Logging
  * Структура для описания скриптов, включаемых в БД релиз
  */
 class ScmFile {
+
     protected Logger logger
 
     ScriptType scriptType
@@ -37,7 +38,6 @@ class ScmFile {
         } else {
             taskNumber = ""
         }
-
     }
 
     ScmFile(String name) {
@@ -101,5 +101,4 @@ class ScmFile {
 """
         return releaseString
     }
-
 }

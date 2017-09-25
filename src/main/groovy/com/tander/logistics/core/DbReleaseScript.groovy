@@ -12,6 +12,7 @@ import org.gradle.api.logging.Logging
  * Created by durov_an on 31.01.2017.
  */
 class DbReleaseScript {
+
     protected Logger logger
 
     ScriptType type
@@ -57,7 +58,6 @@ class DbReleaseScript {
         stat += "prompt [INFO] Statistics\n"
     }
 
-
     LinkedHashMap makeBinding() {
         LinkedHashMap binding = []
 
@@ -84,7 +84,6 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
 """
         return binding
     }
-
 
     void assemblyScript() {
         logger.lifecycle("--------------- generate template start ---------------")
@@ -130,6 +129,4 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
             return 0
         }
     }
-
 }
-

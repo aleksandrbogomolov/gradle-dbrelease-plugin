@@ -6,13 +6,7 @@ import org.gradle.api.Project
 import org.tmatesoft.svn.core.SVNCancelException
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNNodeKind
-import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
-import org.tmatesoft.svn.core.wc.ISVNEventHandler
-import org.tmatesoft.svn.core.wc.SVNDiffStatus
-import org.tmatesoft.svn.core.wc.SVNEvent
-import org.tmatesoft.svn.core.wc.SVNEventAction
-import org.tmatesoft.svn.core.wc.SVNRevision
-import org.tmatesoft.svn.core.wc.SVNStatusType
+import org.tmatesoft.svn.core.wc.*
 
 /**
  * Created by durov_an on 22.12.2016.
@@ -25,7 +19,6 @@ class DbReleaseSvn extends DbRelease {
 
     DbReleaseSvn(Project project) {
         super(project)
-
 
         this.svnUtils = new SvnUtils(ext.user, ext.password.toCharArray())
 
@@ -44,13 +37,10 @@ class DbReleaseSvn extends DbRelease {
             currBranch.url = currBranch.getUrlFromFolder(project.projectDir.toString())
         }
 
-
-
         if (ext.currRevision) {
             currBranch.revision = SVNRevision.create(ext.currRevision as long)
         } else {
             currBranch.revision = SVNRevision.create(currBranch.getLastRevision() as long)
-//            currBranch.revision = SVNRevision.HEAD
         }
 
         if (ext.releaseVersion) {
@@ -64,7 +54,6 @@ class DbReleaseSvn extends DbRelease {
         if (ext.prevUrl) {
             prevBranch.url = ext.prevUrl
             prevBranch.revision = SVNRevision.create(prevBranch.getLastRevision() as long)
-//            prevBranch.revision = SVNRevision.HEAD
         } else {
             prevBranch.url = currBranch.url
             prevBranch.revision = SVNRevision.create(prevBranch.getFirstRevision() as long)
@@ -95,7 +84,6 @@ class DbReleaseSvn extends DbRelease {
     }
 
     void setChangedFilesByDiff() {
-
         ISVNDiffStatusHandler diffStatusHandler = new ISVNDiffStatusHandler() {
             ScmFile scmFile
 
@@ -171,6 +159,4 @@ class DbReleaseSvn extends DbRelease {
         }
         logger.lifecycle("--------------- export finish ---------------")
     }
-
-
 }
