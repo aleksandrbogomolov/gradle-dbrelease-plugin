@@ -10,12 +10,13 @@ import org.tmatesoft.svn.core.SVNLogEntry
  * Created by durov_an on 22.12.2016.
  */
 class ScmFileLogEntryHandler implements ISVNLogEntryHandler {
+
     ScmFile scmFile
     Logger logger
 
     @Override
     void handleLogEntry(SVNLogEntry logEntry) throws SVNException {
-        logger.lifecycle( "get revision info " + scmFile.name )
+        logger.lifecycle("get revision info " + scmFile.name)
         scmFile.author = logEntry.getAuthor()
         scmFile.date = logEntry.getDate()
         scmFile.message = logEntry.getMessage()

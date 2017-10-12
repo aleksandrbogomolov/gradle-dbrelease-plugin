@@ -24,25 +24,13 @@ class BuildDbReleaseTask extends DefaultTask {
     @TaskAction
     void run() {
         this.ext = project.extensions.findByName('dbrelease') as DbReleaseExtension
-
-//        if (project.hasProperty("domainPassword")) {
-//            ext.password = project.property("domainPassword")
-//        } else if (!ext.isTest) {
-//            ext.password = UiUtils.promptPassword(
-//                    "Please enter password",
-//                    "Please enter password for user $ext.user:")
-//        }
-//        if (ext.password.size() <= 0) {
-//            throw new InvalidUserDataException("You must enter a password to proceed.")
-//        }
-
         DbRelease dbRelease = new DbReleaseSvn(project)
-
         dbRelease.setChangedFilesByDiff()
         dbRelease.setLastCommitInfo()
         dbRelease.exportChangedFilesToDir()
+        logger.lifecycle("--------------- generate template start ---------------")
         dbRelease.scriptInstall.assemblyScript()
         dbRelease.scriptUninstall.assemblyScript()
-
+        logger.lifecycle("--------------- generate template finish ---------------")
     }
 }

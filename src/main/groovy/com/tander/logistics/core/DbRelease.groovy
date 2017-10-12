@@ -10,7 +10,8 @@ import org.gradle.api.logging.Logging
  * Created by durov_an on 22.12.2016.
  */
 abstract class DbRelease {
-    protected Logger logger
+
+    Logger logger
     String RELEASE_PATH = 'dbrelease'
     File releaseDir
 
@@ -19,25 +20,22 @@ abstract class DbRelease {
 
     String projectDir
 
-    LinkedHashMap wildacards
+    LinkedHashMap wildcards
     DbReleaseScript scriptInstall
     DbReleaseScript scriptUninstall
 
     DbRelease(Project project) {
         this.project = project
         this.ext = project.extensions.findByName('dbrelease') as DbReleaseExtension
-        this.wildacards = ext.sectionWildacards
-
+        this.wildcards = ext.sectionWildcards
 
         logger = Logging.getLogger(this.class)
         projectDir = project.projectDir
 
         releaseDir = new File(project.buildDir.getPath(), RELEASE_PATH)
         releaseDir.deleteDir()
-//        releaseDir
 
         scriptInstall = new DbReleaseScript(ScriptType.stInstall, this, project)
         scriptUninstall = new DbReleaseScript(ScriptType.stUninstall, this, project)
     }
-
 }

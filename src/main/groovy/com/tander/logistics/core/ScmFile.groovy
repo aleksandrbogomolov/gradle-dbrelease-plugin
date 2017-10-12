@@ -10,6 +10,7 @@ import org.gradle.api.logging.Logging
  * Структура для описания скриптов, включаемых в БД релиз
  */
 class ScmFile {
+
     protected Logger logger
 
     ScriptType scriptType
@@ -26,6 +27,7 @@ class ScmFile {
     String scriptSection
     int wildcardMatchCount = 0
     String wildcardsMatched = ""
+    boolean isAddedManually
 
     LinkedHashMap binding = []
 
@@ -37,7 +39,6 @@ class ScmFile {
         } else {
             taskNumber = ""
         }
-
     }
 
     ScmFile(String name) {
@@ -78,28 +79,5 @@ class ScmFile {
         return binding
     }
 
-    String getReleaseString() {
-        String releaseString = """
-------------------------------------------------FILE--------------------------------------------------------------
- --{TMPL.INSTALL.COUNTBLOCK}--
- exec :totalPrc := round((:totalBlocksInstall * 100) / :totalBlocks);
- exec dbms_output.put_line('---------------------------[ Completed - '||:totalPrc||'% ]-------------------------------');
- -- Revision: $revision Task: $taskNumber Date: $dateFormatted Author: $author
- exec dbms_output.put_line(:separatorList);
- exec dbms_output.put_line('......[FILE] @${scriptType.dirName}/$name');
- exec dbms_output.put_line('.........[REVISION] $revision');
- exec dbms_output.put_line('.........[TASK] $taskNumber');
- exec dbms_output.put_line('.........[DATE] $dateFormatted');
- exec dbms_output.put_line('.........[AUTHOR] $author');
- exec dbms_output.put_line('.........[START] ' || to_char(sysdate,'dd.mm.yyyy hh24:mi:ss'));
- @${scriptType.dirName}/$name
- exec dbms_output.put_line('.........[FINISH] '|| to_char(sysdate,'dd.mm.yyyy hh24:mi:ss'));
- exec dbms_output.put_line('......[FILE]');
- exec dbms_output.put_line(:separatorList);
- exec :totalBlocksInstall := :totalBlocksInstall + 1;
------------------------------------------------/FILE/-------------------------------------------------------------
-"""
-        return releaseString
-    }
 
 }

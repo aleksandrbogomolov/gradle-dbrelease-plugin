@@ -6,26 +6,19 @@ import org.gradle.api.Project
 import org.tmatesoft.svn.core.SVNCancelException
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNNodeKind
-import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
-import org.tmatesoft.svn.core.wc.ISVNEventHandler
-import org.tmatesoft.svn.core.wc.SVNDiffStatus
-import org.tmatesoft.svn.core.wc.SVNEvent
-import org.tmatesoft.svn.core.wc.SVNEventAction
-import org.tmatesoft.svn.core.wc.SVNRevision
-import org.tmatesoft.svn.core.wc.SVNStatusType
+import org.tmatesoft.svn.core.wc.*
 
 /**
  * Created by durov_an on 22.12.2016.
  */
 class DbReleaseSvn extends DbRelease {
-    SvnUtils svnUtils
 
+    SvnUtils svnUtils
     SvnBranch currBranch
     SvnBranch prevBranch
 
     DbReleaseSvn(Project project) {
         super(project)
-
 
         this.svnUtils = new SvnUtils(ext.user, ext.password.toCharArray())
 
@@ -44,27 +37,22 @@ class DbReleaseSvn extends DbRelease {
             currBranch.url = currBranch.getUrlFromFolder(project.projectDir.toString())
         }
 
-
-
         if (ext.currRevision) {
             currBranch.revision = SVNRevision.create(ext.currRevision as long)
         } else {
             currBranch.revision = SVNRevision.create(currBranch.getLastRevision() as long)
-//            currBranch.revision = SVNRevision.HEAD
         }
 
         if (ext.releaseVersion) {
             currBranch.version = ext.releaseVersion
         } else {
             ext.releaseVersion = currBranch.getLastPathSegmentFromUrl()
-            currBranch.version = ext.releaseVersion[0..29]
-
+            currBranch.version = ext.releaseVersion.length() > 30 ? ext.releaseVersion[0..29] : ext.releaseVersion
         }
 
         if (ext.prevUrl) {
             prevBranch.url = ext.prevUrl
             prevBranch.revision = SVNRevision.create(prevBranch.getLastRevision() as long)
-//            prevBranch.revision = SVNRevision.HEAD
         } else {
             prevBranch.url = currBranch.url
             prevBranch.revision = SVNRevision.create(prevBranch.getFirstRevision() as long)
@@ -77,7 +65,6 @@ class DbReleaseSvn extends DbRelease {
         }
 
         svnUtils.testConnection(currBranch.url)
-
     }
 
     void setLastCommitInfo() {
@@ -95,7 +82,6 @@ class DbReleaseSvn extends DbRelease {
     }
 
     void setChangedFilesByDiff() {
-
         ISVNDiffStatusHandler diffStatusHandler = new ISVNDiffStatusHandler() {
             ScmFile scmFile
 
@@ -104,10 +90,13 @@ class DbReleaseSvn extends DbRelease {
                 if (svnDiffStatus.getKind() == SVNNodeKind.FILE) {
                     scmFile = new ScmFile(svnDiffStatus.getPath())
                     scmFile.url = svnDiffStatus.getURL().toString()
+                    if (scmFile.url.contains('uninstall')) {
+                        scmFile.isAddedManually = true
+                    }
                     if (svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
                                                                 SVNStatusType.STATUS_DELETED,
                                                                 SVNStatusType.STATUS_ADDED]) {
-                        scmFile.checkWildcards(wildacards)
+                        scmFile.checkWildcards(wildcards)
                     } else {
                         logger.warn(scmFile.name + " Uncorrected file status : " + svnDiffStatus.getModificationType().toString())
                     }
@@ -166,11 +155,9 @@ class DbReleaseSvn extends DbRelease {
         scriptUninstall.scmFiles.each { String fileName, ScmFile scmFile ->
             svnUtils.doExport(scmFile.url,
                     releaseDir.path + '/uninstall/' + scmFile.name,
-                    prevBranch.revision,
+                    scmFile.isAddedManually ? currBranch.revision : prevBranch.revision,
                     dispatcher)
         }
         logger.lifecycle("--------------- export finish ---------------")
     }
-
-
 }

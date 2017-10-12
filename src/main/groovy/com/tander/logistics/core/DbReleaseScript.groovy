@@ -12,6 +12,7 @@ import org.gradle.api.logging.Logging
  * Created by durov_an on 31.01.2017.
  */
 class DbReleaseScript {
+
     protected Logger logger
 
     ScriptType type
@@ -49,34 +50,37 @@ class DbReleaseScript {
     }
 
     String getStat() {
-        String stat = "prompt [INFO] Statistics\n"
+        String stat = "prompt ...[INFO] Statistics\n"
         def cnt = scmFiles.countBy { it.value.wildcardsMatched }
-        cnt.each {
-            stat += "prompt ...[STAT][${it.toString()}] - ${cnt[it.toString()]}\n"
+        cnt.each { k, v ->
+            stat += "prompt ...[STAT][${k.padLeft(20)}] - $v\n"
         }
-        stat += "prompt [INFO] Statistics\n"
+        stat += "prompt ...[INFO] Statistics\n"
     }
-
 
     LinkedHashMap makeBinding() {
         LinkedHashMap binding = []
 
         binding.clear()
         binding["TMPL_LOG_VERSION"] = "${type.dirName}_log_${currBranch.version}.lst"
-        binding["TMPL_DESC_VERSION"] = "${type.dirName} assembly ${currBranch.version}. Installing Software DC Oracle"
-        binding["TMPL_CONFIG_CURRENT_VERSION"] = "${prevBranch.version}"
-        binding["TMPL_CONFIG_NEW_VERSION"] = "${currBranch.version}"
-        binding["TMPL_CONFIG_TASK"] = "${ext.buildTaskNumber}"
-        binding["TMPL_CONFIG_ASSEMBLY"] = "${ext.taskNumber}"
+        binding["TMPL_DESC_VERSION"] = "$type.dirName assembly ${currBranch.version}. Installing Software DC Oracle"
+        binding["TMPL_CONFIG_CURRENT_VERSION"] = "$prevBranch.version"
+        binding["TMPL_CONFIG_NEW_VERSION"] = "$currBranch.version"
+        binding["TMPL_CONFIG_NEW_REVISION"] = "$currBranch.revisionName"
+        binding["TMPL_CONFIG_TASK"] = "$ext.buildTaskNumber"
+        binding["TMPL_CONFIG_ASSEMBLY"] = "$ext.taskNumber"
         binding["TMPL_CONFIG_DATECREATED"] = "${new Date().format("dd.MM.yyyy HH:mm:ss z", TimeZone.getTimeZone('UTC'))}"
-        binding["TMPL_CONFIG_USERCREATED"] = "${ext.user}"
+        binding["TMPL_CONFIG_USERCREATED"] = "$ext.user"
         binding["TMPL_CONFIG_REVISION"] = "${currBranch.getRevisionName()}"
-        binding["TMPL_CONFIG_CHECKVERS"] = "${ext.isCheckReleaseNumberNeeded}"
-        binding["TMPL_CONFIG_UPDATEVERS"] = "${ext.isUpdateReleaseNumberNeeded}"
+        binding["TMPL_CONFIG_MONOPOL"] = "$ext.monopol"
+        binding["TMPL_CONFIG_CHECKVERS"] = "$ext.isCheckReleaseNumberNeeded"
+        binding["TMPL_CONFIG_CHECKREVISION"] = ""
+        binding["TMPL_CONFIG_UPDATEVERS"] = "$ext.isUpdateReleaseNumberNeeded"
+        binding["TMPL_CONFIG_UPDATEREVISION"] = "1"
         binding["TMPL_CONFIG_RECOMPILING"] = "${scriptSections["TMPL_SCRIPT_AFTER_INSTALL"].toString().length() ? "1" : "0"}"
-        binding["TMPL_CONFIG_LISTNODEBUGPACK"] = ""
+        binding["TMPL_CONFIG_LISTNODEBUGPACK"] = "0"
         binding["TMPL_CONFIG_TOTALBLOCKS"] = "${scmFiles.size()}"
-        binding["TMPL_INFORMATION_SATISTICS"] = getStat()
+        binding["TMPL_INFORMATION_STATISTICS"] = getStat()
         binding["TMPL_INFORMATION_CREATED"] = """
 prompt BranchCurrent: ${currBranch.url} -revision: ${currBranch.getRevisionName()}
 prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName()}
@@ -85,11 +89,9 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         return binding
     }
 
-
     void assemblyScript() {
-        logger.lifecycle("--------------- generate template start ---------------")
         // заполним скрипты по секциям для вставки в ${type}.sql и скопируем файлы
-        ext.sectionWildacards.each {
+        ext.sectionWildcards.each {
             scriptSections[it.key as String] = ''
         }
 
@@ -108,7 +110,6 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
 
         DbScriptTemplate installTemplate = new DbScriptTemplate(new File(project.projectDir, ext.dbReleaseTemplate))
         installTemplate.makeScript(release.releaseDir.path + "/${type.dirName}.sql", binding)
-        logger.lifecycle("--------------- generate template finish ---------------")
     }
 
     // компаратор для сортировки списка файлов. Сперва сортируем по маске файла из настроек, потом по пути к файлу
@@ -130,6 +131,4 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
             return 0
         }
     }
-
 }
-

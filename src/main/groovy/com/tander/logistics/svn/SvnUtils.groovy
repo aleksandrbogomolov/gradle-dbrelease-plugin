@@ -1,24 +1,12 @@
 package com.tander.logistics.svn
 
-import org.tmatesoft.svn.core.ISVNDirEntryHandler
-import org.tmatesoft.svn.core.ISVNLogEntryHandler
-import org.tmatesoft.svn.core.SVNDepth
-import org.tmatesoft.svn.core.SVNURL
+import org.tmatesoft.svn.core.*
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationProvider
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
 import org.tmatesoft.svn.core.io.SVNRepository
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory
-import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
-import org.tmatesoft.svn.core.wc.ISVNEventHandler
-import org.tmatesoft.svn.core.wc.SVNClientManager
-import org.tmatesoft.svn.core.wc.SVNDiffClient
-import org.tmatesoft.svn.core.wc.SVNInfo
-import org.tmatesoft.svn.core.wc.SVNLogClient
-import org.tmatesoft.svn.core.wc.SVNRevision
-import org.tmatesoft.svn.core.wc.SVNUpdateClient
-import org.tmatesoft.svn.core.wc.SVNWCClient
-import org.tmatesoft.svn.core.wc.SVNWCUtil
+import org.tmatesoft.svn.core.wc.*
 
 /**
  * Created by durov_an on 01.04.2016.
@@ -40,8 +28,7 @@ class SvnUtils {
         firstRevision = SVNRevision.create(1)
     }
 
-
-    def doExport(String svnURL, String dirPath, SVNRevision revision, ISVNEventHandler dispatcher) {
+    def doExport(String svnURL, String dirPath, SVNRevision revision, ISVNEventHandler dispatcher) throws SVNException {
         SVNUpdateClient updateClient = clientManager.getUpdateClient()
         updateClient.setEventHandler(dispatcher)
         updateClient.setIgnoreExternals(true)
@@ -131,31 +118,4 @@ class SvnUtils {
         SVNInfo svnInfo = svnwcClient.doInfo(new File(dirPath), SVNRevision.WORKING)
         return svnInfo.getURL().toString()
     }
-
-    static SVNRevision getSvnRevision(String revision) {
-        switch (revision) {
-            case 'HEAD':
-                return SVNRevision.HEAD
-                break
-            case 'WORKING':
-                return SVNRevision.WORKING
-                break
-            case 'PREVIOUS':
-                return SVNRevision.PREVIOUS
-                break
-            case 'BASE':
-                return SVNRevision.BASE
-                break
-            case 'COMMITTED':
-                return SVNRevision.COMMITTED
-                break
-            case 'UNDEFINED':
-                return SVNRevision.UNDEFINED
-                break
-            default:
-                return SVNRevision.create(revision as long)
-                break
-        }
-    }
-
 }

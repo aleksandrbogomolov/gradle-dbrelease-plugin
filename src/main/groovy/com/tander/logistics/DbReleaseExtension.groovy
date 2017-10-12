@@ -1,19 +1,16 @@
 package com.tander.logistics
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import groovy.swing.SwingBuilder
 
 /**
  * Created by durov_an on 10.02.2016.
  *
  * Настройки плагина
  */
-
 class DbReleaseExtension {
+
     Project project
     Boolean isTest = false
-    String scmType
     String user = ''
     String password = ''
 
@@ -23,26 +20,30 @@ class DbReleaseExtension {
     String prevUrl
     String currRevision
     String prevRevision
+    String monopol
 
     String isCheckReleaseNumberNeeded
     String isUpdateReleaseNumberNeeded
+    String isUpdateRevisionNumberNeeded
 
     String buildTaskNumber
 
-    LinkedHashMap sectionWildacards = [
+    LinkedHashMap sectionWildcards = [
             'TMPL_SCRIPT_BEFORE_INSTALL': [
                     '*/before/*.sql',
+                    '*.ind',
                     '*.seq',
                     '*.tab',
                     '*.alt',
                     '*_rec_t.tps',
                     '*_tab_t.tps',
+                    '*.q',
+                    '*.tpsalt',
                     '*.vw',
                     '*.mw',
                     '*.syn',
                     '*.trg',
                     '*.qtb',
-                    '*.q',
                     '*.pck',
                     '*.prc',
                     '*.fnc',
@@ -59,7 +60,6 @@ class DbReleaseExtension {
             'tps': 'drop type'
     ]
 
-
     String dbReleaseTemplate = 'dbrelease.sql.tmpl'
     String scmFileTemplate = 'scmfile.sql.tmpl'
 
@@ -69,6 +69,7 @@ class DbReleaseExtension {
         if (project.hasProperty("currURL")) {
             currUrl = project.property("currURL")
         }
+
         if (project.hasProperty("prevUrl")) {
             prevUrl = project.property("prevUrl")
         }
@@ -76,31 +77,22 @@ class DbReleaseExtension {
         if (project.hasProperty("currRevision")) {
             currRevision = project.property("currRevision")
         }
+
         if (project.hasProperty("prevRevision")) {
             prevRevision = project.property("prevRevision")
         }
 
+        monopol = project.findProperty("monopol") ?: "1"
 
-        if (project.hasProperty("taskNumber")) {
-            taskNumber = project.property("taskNumber")
-        } else {
-            taskNumber = "build.gradle"
-        }
+        taskNumber = project.findProperty("taskNumber") ?: "номер задачи СППР не заполнен"
 
-        if (project.hasProperty("releaseVersion")) {
-            releaseVersion = project.property("releaseVersion")
-        }
+        isCheckReleaseNumberNeeded = project.findProperty("isCheckReleaseNumberNeeded") ?: "1"
 
+        isUpdateReleaseNumberNeeded = project.findProperty("isUpdateReleaseNumberNeeded") ?: "1"
 
-        if (project.hasProperty("isCheckReleaseNumberNeeded")) {
-            isCheckReleaseNumberNeeded = project.property("isCheckReleaseNumberNeeded")
-        }
-        if (project.hasProperty("isUpdateReleaseNumberNeeded")) {
-            isUpdateReleaseNumberNeeded = project.property("isUpdateReleaseNumberNeeded")
-        }
+        isUpdateRevisionNumberNeeded = project.findProperty("isUpdateRevisionNumberNeeded") ?: "1"
 
-        buildTaskNumber = buildTaskNumber ?: "build.gradle"
-
+        buildTaskNumber = buildTaskNumber ?: "номер задачи сборки не заполнен"
 
         if (project.hasProperty("domainUser")) {
             user = project.property("domainUser")
