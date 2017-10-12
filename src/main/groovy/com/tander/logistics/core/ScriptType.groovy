@@ -6,6 +6,7 @@ package com.tander.logistics.core
 
 // типы скриптов
 enum ScriptType {
+
     stInstall("install"),
     stUninstall("uninstall")
 

@@ -28,7 +28,9 @@ class BuildDbReleaseTask extends DefaultTask {
         dbRelease.setChangedFilesByDiff()
         dbRelease.setLastCommitInfo()
         dbRelease.exportChangedFilesToDir()
+        logger.lifecycle("--------------- generate template start ---------------")
         dbRelease.scriptInstall.assemblyScript()
         dbRelease.scriptUninstall.assemblyScript()
+        logger.lifecycle("--------------- generate template finish ---------------")
     }
 }

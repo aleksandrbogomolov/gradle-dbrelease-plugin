@@ -11,7 +11,6 @@ class DbReleaseExtension {
 
     Project project
     Boolean isTest = false
-    String scmType
     String user = ''
     String password = ''
 
@@ -21,26 +20,30 @@ class DbReleaseExtension {
     String prevUrl
     String currRevision
     String prevRevision
+    String monopol
 
     String isCheckReleaseNumberNeeded
     String isUpdateReleaseNumberNeeded
+    String isUpdateRevisionNumberNeeded
 
     String buildTaskNumber
 
-    LinkedHashMap sectionWildacards = [
+    LinkedHashMap sectionWildcards = [
             'TMPL_SCRIPT_BEFORE_INSTALL': [
                     '*/before/*.sql',
+                    '*.ind',
                     '*.seq',
                     '*.tab',
                     '*.alt',
                     '*_rec_t.tps',
                     '*_tab_t.tps',
+                    '*.q',
+                    '*.tpsalt',
                     '*.vw',
                     '*.mw',
                     '*.syn',
                     '*.trg',
                     '*.qtb',
-                    '*.q',
                     '*.pck',
                     '*.prc',
                     '*.fnc',
@@ -66,6 +69,7 @@ class DbReleaseExtension {
         if (project.hasProperty("currURL")) {
             currUrl = project.property("currURL")
         }
+
         if (project.hasProperty("prevUrl")) {
             prevUrl = project.property("prevUrl")
         }
@@ -73,28 +77,22 @@ class DbReleaseExtension {
         if (project.hasProperty("currRevision")) {
             currRevision = project.property("currRevision")
         }
+
         if (project.hasProperty("prevRevision")) {
             prevRevision = project.property("prevRevision")
         }
 
-        if (project.hasProperty("taskNumber")) {
-            taskNumber = project.property("taskNumber")
-        } else {
-            taskNumber = "build.gradle"
-        }
+        monopol = project.findProperty("monopol") ?: "1"
 
-        if (project.hasProperty("releaseVersion")) {
-            releaseVersion = project.property("releaseVersion")
-        }
+        taskNumber = project.findProperty("taskNumber") ?: "номер задачи СППР не заполнен"
 
-        if (project.hasProperty("isCheckReleaseNumberNeeded")) {
-            isCheckReleaseNumberNeeded = project.property("isCheckReleaseNumberNeeded")
-        }
-        if (project.hasProperty("isUpdateReleaseNumberNeeded")) {
-            isUpdateReleaseNumberNeeded = project.property("isUpdateReleaseNumberNeeded")
-        }
+        isCheckReleaseNumberNeeded = project.findProperty("isCheckReleaseNumberNeeded") ?: "1"
 
-        buildTaskNumber = buildTaskNumber ?: "build.gradle"
+        isUpdateReleaseNumberNeeded = project.findProperty("isUpdateReleaseNumberNeeded") ?: "1"
+
+        isUpdateRevisionNumberNeeded = project.findProperty("isUpdateRevisionNumberNeeded") ?: "1"
+
+        buildTaskNumber = buildTaskNumber ?: "номер задачи сборки не заполнен"
 
         if (project.hasProperty("domainUser")) {
             user = project.property("domainUser")

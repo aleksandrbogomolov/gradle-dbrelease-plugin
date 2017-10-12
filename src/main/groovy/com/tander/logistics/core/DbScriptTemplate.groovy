@@ -9,23 +9,18 @@ import groovy.text.Template
  * Формирование итоговых скриптов на основании шаблонов
  */
 class DbScriptTemplate {
-    Template template
 
+    Template template
 
     DbScriptTemplate(String templateFilePath) {
         File templateFile = new File(templateFilePath)
         SimpleTemplateEngine engine = new SimpleTemplateEngine()
         template = engine.createTemplate(templateFile)
-        if (templateFile.exists()) {
+        if (!templateFile.exists()) {
             template = engine.createTemplate(templateFile)
         } else {
             throw new Exception('Cant find template: ' + templateFile.canonicalPath)
         }
-//        if (templateFile.exists()) {
-//            template = engine.createTemplate(templateFile)
-//        } else {
-//            template = engine.createTemplate(this.getClass().getResource('/sql-script-templates/install_sql.tmpl').text)
-//        }
     }
 
     DbScriptTemplate(File templateFile) {
@@ -37,9 +32,8 @@ class DbScriptTemplate {
         }
     }
 
-
     def makeScript(String scriptFilePath, Map binding) {
         def installSqlFile = new File(scriptFilePath)
-        installSqlFile.write(template.make(binding).toString())
+        installSqlFile.write(template.make(binding).toString(), 'Cp1251')
     }
 }

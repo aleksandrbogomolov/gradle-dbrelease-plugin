@@ -12,8 +12,8 @@ import org.tmatesoft.svn.core.wc.*
  * Created by durov_an on 22.12.2016.
  */
 class DbReleaseSvn extends DbRelease {
-    SvnUtils svnUtils
 
+    SvnUtils svnUtils
     SvnBranch currBranch
     SvnBranch prevBranch
 
@@ -47,8 +47,7 @@ class DbReleaseSvn extends DbRelease {
             currBranch.version = ext.releaseVersion
         } else {
             ext.releaseVersion = currBranch.getLastPathSegmentFromUrl()
-            currBranch.version = ext.releaseVersion[0..29]
-
+            currBranch.version = ext.releaseVersion.length() > 30 ? ext.releaseVersion[0..29] : ext.releaseVersion
         }
 
         if (ext.prevUrl) {
@@ -66,7 +65,6 @@ class DbReleaseSvn extends DbRelease {
         }
 
         svnUtils.testConnection(currBranch.url)
-
     }
 
     void setLastCommitInfo() {
@@ -92,10 +90,13 @@ class DbReleaseSvn extends DbRelease {
                 if (svnDiffStatus.getKind() == SVNNodeKind.FILE) {
                     scmFile = new ScmFile(svnDiffStatus.getPath())
                     scmFile.url = svnDiffStatus.getURL().toString()
+                    if (scmFile.url.contains('uninstall')) {
+                        scmFile.isAddedManually = true
+                    }
                     if (svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
                                                                 SVNStatusType.STATUS_DELETED,
                                                                 SVNStatusType.STATUS_ADDED]) {
-                        scmFile.checkWildcards(wildacards)
+                        scmFile.checkWildcards(wildcards)
                     } else {
                         logger.warn(scmFile.name + " Uncorrected file status : " + svnDiffStatus.getModificationType().toString())
                     }
@@ -154,7 +155,7 @@ class DbReleaseSvn extends DbRelease {
         scriptUninstall.scmFiles.each { String fileName, ScmFile scmFile ->
             svnUtils.doExport(scmFile.url,
                     releaseDir.path + '/uninstall/' + scmFile.name,
-                    prevBranch.revision,
+                    scmFile.isAddedManually ? currBranch.revision : prevBranch.revision,
                     dispatcher)
         }
         logger.lifecycle("--------------- export finish ---------------")

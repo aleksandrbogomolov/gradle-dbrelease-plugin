@@ -18,7 +18,7 @@ class DbReleasePlugin implements Plugin<Project> {
         project.tasks.create('buildDbRelease', BuildDbReleaseTask)
 
         project.afterEvaluate {
-            project.tasks.create('assemblyDbRelease', AssemblyDbRelease)
+            project.tasks.create('assembly', AssemblyDbRelease)
             dbRelease.init(project)
         }
     }
