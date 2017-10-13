@@ -27,7 +27,7 @@ class ScmFile {
     String scriptSection
     int wildcardMatchCount = 0
     String wildcardsMatched = ""
-    boolean isAddedManually
+    boolean getFromUninstall
 
     LinkedHashMap binding = []
 

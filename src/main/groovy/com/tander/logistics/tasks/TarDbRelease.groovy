@@ -8,15 +8,11 @@ import org.gradle.api.tasks.bundling.Tar
  */
 class TarDbRelease extends Tar {
 
-    String scriptType
-
     TarDbRelease() {
         dependsOn project.tasks.findByName("buildDbRelease")
         group = 'distribution'
         compression = Compression.BZIP2
         extension = "tbz"
         destinationDir = new File(project.buildDir, "distributions")
-        into(scriptType) { from { "${project.buildDir}/dbrelease/${scriptType}" } }
-        from { "${project.buildDir}/dbrelease/${scriptType}.sql" }
     }
 }

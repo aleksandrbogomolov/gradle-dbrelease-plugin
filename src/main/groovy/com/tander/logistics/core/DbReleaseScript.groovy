@@ -76,7 +76,7 @@ class DbReleaseScript {
         binding["TMPL_CONFIG_CHECKVERS"] = "$ext.isCheckReleaseNumberNeeded"
         binding["TMPL_CONFIG_CHECKREVISION"] = ""
         binding["TMPL_CONFIG_UPDATEVERS"] = "$ext.isUpdateReleaseNumberNeeded"
-        binding["TMPL_CONFIG_UPDATEREVISION"] = "1"
+        binding["TMPL_CONFIG_UPDATEREVISION"] = "$ext.isUpdateRevisionNumberNeeded"
         binding["TMPL_CONFIG_RECOMPILING"] = "${scriptSections["TMPL_SCRIPT_AFTER_INSTALL"].toString().length() ? "1" : "0"}"
         binding["TMPL_CONFIG_LISTNODEBUGPACK"] = "0"
         binding["TMPL_CONFIG_TOTALBLOCKS"] = "${scmFiles.size()}"
