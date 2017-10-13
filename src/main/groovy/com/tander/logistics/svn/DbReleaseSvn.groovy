@@ -91,7 +91,7 @@ class DbReleaseSvn extends DbRelease {
                     scmFile = new ScmFile(svnDiffStatus.getPath())
                     scmFile.url = svnDiffStatus.getURL().toString()
                     if (scmFile.url.contains('uninstall')) {
-                        scmFile.isAddedManually = true
+                        scmFile.getFromUninstall = true
                     }
                     if (svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
                                                                 SVNStatusType.STATUS_DELETED,
@@ -155,7 +155,7 @@ class DbReleaseSvn extends DbRelease {
         scriptUninstall.scmFiles.each { String fileName, ScmFile scmFile ->
             svnUtils.doExport(scmFile.url,
                     releaseDir.path + '/uninstall/' + scmFile.name,
-                    scmFile.isAddedManually ? currBranch.revision : prevBranch.revision,
+                    scmFile.getFromUninstall ? currBranch.revision : prevBranch.revision,
                     dispatcher)
         }
         logger.lifecycle("--------------- export finish ---------------")

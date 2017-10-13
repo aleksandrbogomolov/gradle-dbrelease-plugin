@@ -46,7 +46,6 @@ class SvnBranch extends ScmBranch implements IScmBranch {
             void checkCancelled() throws SVNCancelException {
             }
         }
-//        updateClient.doExport(SVNURL.parseURIEncoded(svnURL), checkoutSVNBranch, revisionName, revisionName, null, true, SVNDepth.INFINITY);
 
         if (SVNWCUtil.isVersionedDirectory(new File(path))) {
             if (svnUtils.getWorkingDirectoryUrl(path) == url) {
@@ -85,7 +84,6 @@ class SvnBranch extends ScmBranch implements IScmBranch {
         ISVNLogEntryHandler isvnLogEntryHandler = new ISVNLogEntryHandler() {
             @Override
             void handleLogEntry(SVNLogEntry logEntry) throws SVNException {
-//                logger.info("определена начальная ревизия в ветке $url:" + logEntry.getRevision() + ' ' + logEntry.getMessage())
                 revisionNumber = logEntry.getRevision()
             }
         }
@@ -106,7 +104,6 @@ class SvnBranch extends ScmBranch implements IScmBranch {
         ISVNLogEntryHandler isvnLogEntryHandler = new ISVNLogEntryHandler() {
             @Override
             void handleLogEntry(SVNLogEntry logEntry) throws SVNException {
-//                logger.info("определена начальная ревизия в ветке $url:" + logEntry.getRevision() + ' ' + logEntry.getMessage())
                 revisionNumber = logEntry.getRevision()
             }
         }
