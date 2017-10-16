@@ -46,8 +46,15 @@ class DbReleaseSvn extends DbRelease {
         if (ext.releaseVersion) {
             currBranch.version = ext.releaseVersion
         } else {
-            ext.releaseVersion = currBranch.getLastPathSegmentFromUrl()
-            currBranch.version = ext.releaseVersion.length() > 30 ? ext.releaseVersion[0..29] : ext.releaseVersion
+            def version = currBranch.getLastPathSegmentFromUrl()
+            if (currBranch.url.toString().contains('release')) {
+                currBranch.version = version
+                ext.isRelease = true
+            } else {
+                def chain = version.split("-")
+                currBranch.version = "${chain.last()}.${chain[1].substring(2)}"
+                ext.isRelease = false
+            }
         }
 
         if (ext.prevUrl) {
@@ -62,6 +69,12 @@ class DbReleaseSvn extends DbRelease {
 
         if (ext.prevRevision) {
             prevBranch.revision = SVNRevision.create(ext.prevRevision as long)
+        }
+
+        if (ext.isRelease) {
+            ext.previousVersion = svnUtils.getPreviousVersion(currBranch.version)
+        } else {
+            ext.previousVersion = currBranch.version.take(currBranch.version.lastIndexOf("."))
         }
 
         svnUtils.testConnection(currBranch.url)

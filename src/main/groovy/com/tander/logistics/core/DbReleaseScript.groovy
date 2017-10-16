@@ -7,7 +7,6 @@ import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
-
 /**
  * Created by durov_an on 31.01.2017.
  */
@@ -64,11 +63,9 @@ class DbReleaseScript {
         binding.clear()
         binding["TMPL_LOG_VERSION"] = "${type.dirName}_log_${currBranch.version}.lst"
         binding["TMPL_DESC_VERSION"] = "$type.dirName assembly ${currBranch.version}. Installing Software DC Oracle"
-        binding["TMPL_CONFIG_CURRENT_VERSION"] = "$prevBranch.version"
+        binding["TMPL_CONFIG_CURRENT_VERSION"] = ext.previousVersion
         binding["TMPL_CONFIG_NEW_VERSION"] = "$currBranch.version"
         binding["TMPL_CONFIG_NEW_REVISION"] = "$currBranch.revisionName"
-        binding["TMPL_CONFIG_TASK"] = "$ext.buildTaskNumber"
-        binding["TMPL_CONFIG_ASSEMBLY"] = "$ext.taskNumber"
         binding["TMPL_CONFIG_DATECREATED"] = "${new Date().format("dd.MM.yyyy HH:mm:ss z", TimeZone.getTimeZone('UTC'))}"
         binding["TMPL_CONFIG_USERCREATED"] = "$ext.user"
         binding["TMPL_CONFIG_REVISION"] = "${currBranch.getRevisionName()}"
@@ -79,7 +76,7 @@ class DbReleaseScript {
         binding["TMPL_CONFIG_UPDATEREVISION"] = "$ext.isUpdateRevisionNumberNeeded"
         binding["TMPL_CONFIG_RECOMPILING"] = "${scriptSections["TMPL_SCRIPT_AFTER_INSTALL"].toString().length() ? "1" : "0"}"
         binding["TMPL_CONFIG_LISTNODEBUGPACK"] = "0"
-        binding["TMPL_CONFIG_TOTALBLOCKS"] = "${scmFiles.size()}"
+        binding["TMPL_CONFIG_TOTALBLOCKS"] = "${scmFiles.size() + 15}"
         binding["TMPL_INFORMATION_STATISTICS"] = getStat()
         binding["TMPL_INFORMATION_CREATED"] = """
 prompt BranchCurrent: ${currBranch.url} -revision: ${currBranch.getRevisionName()}
