@@ -122,23 +122,23 @@ class SvnUtils {
     /**
      * Достаем из директории set предыдущую версию,
      * @param currentVersion текущая версия
-     * @return в зависимости от релиз это или патч возвращается или номер предыдущего релиза или предыдущего патча
+     * @return в зависимости от релиз это или патч возвращается номер предыдущего релиза или предыдущего патча
      */
     String getPreviousVersion(String currentVersion) {
         String result = currentVersion
         def repoUrl = "https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/tomcatsrv-dc-ora"
         def repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(repoUrl))
         repository.setAuthenticationManager(authManager)
-        def regex = checkIsRelease(currentVersion) ? ~/\d*\.\d*\.\d/ : ~/\d*\.\d*\.\d*/
+        def regex = checkIsRelease(currentVersion) ? ~/\d*\.\d*\.0/ : ~/\d*\.\d*\.\d*/
         def dir = new ArrayList<SVNDirEntry>()
         repository.getDir(".", SVNRevision.HEAD.getNumber(), new SVNProperties(), dir)
         def versions = new ArrayList()
         versions.add(currentVersion)
         dir.each { f ->
             def name = f.getName() - ".ebuild"
-            def chainName = name.split("-")
-            if (regex.matcher(chainName.last()).matches()) {
-                versions.add("${chainName.last()}")
+            def version = name.split("-").last()
+            if (regex.matcher(version).matches()) {
+                versions.add(version)
             }
         }
         versions.sort()
