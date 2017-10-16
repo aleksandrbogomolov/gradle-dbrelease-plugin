@@ -22,6 +22,7 @@ class DbReleaseExtension {
     String prevRevision
     String monopol
     boolean isRelease
+    String packageName
 
     String isCheckReleaseNumberNeeded
     String isUpdateReleaseNumberNeeded
