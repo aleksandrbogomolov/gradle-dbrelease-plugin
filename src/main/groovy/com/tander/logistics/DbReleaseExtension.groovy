@@ -14,20 +14,18 @@ class DbReleaseExtension {
     String user = ''
     String password = ''
 
-    String taskNumber
     String releaseVersion
+    String previousVersion
     String currUrl
     String prevUrl
     String currRevision
     String prevRevision
     String monopol
-    String packageName
+    boolean isRelease
 
     String isCheckReleaseNumberNeeded
     String isUpdateReleaseNumberNeeded
     String isUpdateRevisionNumberNeeded
-
-    String buildTaskNumber
 
     LinkedHashMap sectionWildcards = [
             'TMPL_SCRIPT_BEFORE_INSTALL': [
@@ -85,15 +83,11 @@ class DbReleaseExtension {
 
         monopol = project.findProperty("monopol") ?: "1"
 
-        taskNumber = project.findProperty("taskNumber") ?: "номер задачи СППР не заполнен"
-
         isCheckReleaseNumberNeeded = project.findProperty("isCheckReleaseNumberNeeded") ?: "1"
 
         isUpdateReleaseNumberNeeded = project.findProperty("isUpdateReleaseNumberNeeded") ?: "1"
 
         isUpdateRevisionNumberNeeded = project.findProperty("isUpdateRevisionNumberNeeded") ?: "1"
-
-        buildTaskNumber = buildTaskNumber ?: "номер задачи сборки не заполнен"
 
         if (project.hasProperty("domainUser")) {
             user = project.property("domainUser")

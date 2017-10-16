@@ -118,4 +118,46 @@ class SvnUtils {
         SVNInfo svnInfo = svnwcClient.doInfo(new File(dirPath), SVNRevision.WORKING)
         return svnInfo.getURL().toString()
     }
+
+    /**
+     * Достаем из директории set предыдущую версию,
+     * @param currentVersion текущая версия
+     * @return в зависимости от релиз это или патч возвращается или номер предыдущего релиза или предыдущего патча
+     */
+    String getPreviousVersion(String currentVersion) {
+        String result = currentVersion
+        def repoUrl = "https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/tomcatsrv-dc-ora"
+        def repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(repoUrl))
+        repository.setAuthenticationManager(authManager)
+        def regex = checkIsRelease(currentVersion) ? ~/\d*\.\d*\.\d/ : ~/\d*\.\d*\.\d*/
+        def dir = new ArrayList<SVNDirEntry>()
+        repository.getDir(".", SVNRevision.HEAD.getNumber(), new SVNProperties(), dir)
+        def versions = new ArrayList()
+        versions.add(currentVersion)
+        dir.each { f ->
+            def name = f.getName() - ".ebuild"
+            def chainName = name.split("-")
+            if (regex.matcher(chainName.last()).matches()) {
+                versions.add("${chainName.last()}")
+            }
+        }
+        versions.sort()
+        for (e in versions) {
+            if (e == currentVersion) {
+                return result
+            } else {
+                result = e
+            }
+        }
+        return result
+    }
+
+    /**
+     * Проверяем по текущей версии является ли данная сборка релизом или патчем
+     * @param version текущая версия
+     * @return code{true} если релиз или code{false} если патч
+     */
+    boolean checkIsRelease(String currentVersion) {
+        return currentVersion.split("\\.").last() == "0"
+    }
 }
