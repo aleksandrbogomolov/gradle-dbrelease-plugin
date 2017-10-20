@@ -37,25 +37,13 @@ class DbReleaseSvn extends DbRelease {
             currBranch.url = currBranch.getUrlFromFolder(project.projectDir.toString())
         }
 
-        if (ext.currRevision) {
-            currBranch.revision = SVNRevision.create(ext.currRevision as long)
+        if (ext.newRevision) {
+            currBranch.revision = SVNRevision.create(ext.newRevision as long)
         } else {
             currBranch.revision = SVNRevision.create(currBranch.getLastRevision() as long)
         }
 
-        if (ext.releaseVersion) {
-            currBranch.version = ext.releaseVersion
-        } else {
-            def version = currBranch.getLastPathSegmentFromUrl()
-            if (currBranch.url.toString().contains('release')) {
-                currBranch.version = version
-                ext.isRelease = true
-            } else {
-                def chain = version.split("-")
-                currBranch.version = "${chain.last()}.${chain[1].substring(2)}"
-                ext.isRelease = false
-            }
-        }
+        currBranch.version = ext.releaseVersion
 
         if (ext.prevUrl) {
             prevBranch.url = ext.prevUrl
@@ -65,16 +53,17 @@ class DbReleaseSvn extends DbRelease {
             prevBranch.revision = SVNRevision.create(prevBranch.getFirstRevision() as long)
         }
 
-        prevBranch.version = prevBranch.getLastPathSegmentFromUrl()
-
-        if (ext.prevRevision) {
-            prevBranch.revision = SVNRevision.create(ext.prevRevision as long)
+        if (ext.currentRevision) {
+            prevBranch.revision = SVNRevision.create(ext.currentRevision as long)
         }
 
         if (ext.isRelease) {
-            ext.previousVersion = svnUtils.getPreviousVersion(currBranch.version)
+            prevBranch.version = project.settings.previousVersion
+            if (!prevBranch.version) {
+                prevBranch.version = svnUtils.getPreviousVersionFromSet(currBranch.version)
+            }
         } else {
-            ext.previousVersion = currBranch.version.take(currBranch.version.lastIndexOf("."))
+            prevBranch.version = currBranch.version.take(currBranch.version.lastIndexOf("."))
         }
 
         svnUtils.testConnection(currBranch.url)
@@ -104,7 +93,7 @@ class DbReleaseSvn extends DbRelease {
                     scmFile = new ScmFile(svnDiffStatus.getPath())
                     scmFile.url = svnDiffStatus.getURL().toString()
                     if (scmFile.url.contains('uninstall')) {
-                        scmFile.getFromUninstall = true
+                        scmFile.isUninstall = true
                     }
                     if (svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
                                                                 SVNStatusType.STATUS_DELETED,
@@ -114,10 +103,10 @@ class DbReleaseSvn extends DbRelease {
                         logger.warn(scmFile.name + " Uncorrected file status : " + svnDiffStatus.getModificationType().toString())
                     }
 
-                    if (!(svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_DELETED])) {
+                    if (svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED && !scmFile.isUninstall) {
                         scriptInstall.scmFiles[scmFile.name] = scmFile
                     }
-                    if (!(svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_ADDED])) {
+                    if (svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED || scmFile.isUninstall) {
                         scriptUninstall.scmFiles[scmFile.name] = scmFile
                     }
                 }
@@ -125,15 +114,10 @@ class DbReleaseSvn extends DbRelease {
             }
         }
         logger.lifecycle("--------------- diff start ---------------")
-        svnUtils.doDiffStatus(prevBranch.getInstallUrl(),
+        svnUtils.doDiffStatus(prevBranch.getUrl(),
                 prevBranch.revision,
-                currBranch.getInstallUrl(),
+                currBranch.getUrl(),
                 currBranch.revision,
-                diffStatusHandler)
-        svnUtils.doDiffStatus(currBranch.getUninstallUrl(),
-                currBranch.revision,
-                prevBranch.getUninstallUrl(),
-                prevBranch.revision,
                 diffStatusHandler)
         logger.lifecycle(" files to install: " + scriptInstall.scmFiles.size())
         logger.lifecycle(" files to uninstall: " + scriptUninstall.scmFiles.size())
@@ -168,7 +152,7 @@ class DbReleaseSvn extends DbRelease {
         scriptUninstall.scmFiles.each { String fileName, ScmFile scmFile ->
             svnUtils.doExport(scmFile.url,
                     releaseDir.path + '/uninstall/' + scmFile.name,
-                    scmFile.getFromUninstall ? currBranch.revision : prevBranch.revision,
+                    scmFile.isUninstall ? currBranch.revision : prevBranch.revision,
                     dispatcher)
         }
         logger.lifecycle("--------------- export finish ---------------")

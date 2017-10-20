@@ -124,7 +124,7 @@ class SvnUtils {
      * @param currentVersion текущая версия
      * @return в зависимости от релиз это или патч возвращается номер предыдущего релиза или предыдущего патча
      */
-    String getPreviousVersion(String currentVersion) {
+    String getPreviousVersionFromSet(String currentVersion) {
         String result = currentVersion
         def repoUrl = "https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/tomcatsrv-dc-ora"
         def repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(repoUrl))

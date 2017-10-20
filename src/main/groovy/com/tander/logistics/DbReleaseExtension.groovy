@@ -14,19 +14,21 @@ class DbReleaseExtension {
     String user = ''
     String password = ''
 
+    String spprDeliveryNumber
     String releaseVersion
-    String previousVersion
     String currUrl
     String prevUrl
-    String currRevision
-    String prevRevision
+    String newRevision
+    String currentRevision
     String monopol
     boolean isRelease
-    String packageName
 
     String isCheckReleaseNumberNeeded
     String isUpdateReleaseNumberNeeded
     String isUpdateRevisionNumberNeeded
+
+    String dbReleaseTemplate
+    String scmFileTemplate
 
     LinkedHashMap sectionWildcards = [
             'TMPL_SCRIPT_BEFORE_INSTALL': [
@@ -55,13 +57,6 @@ class DbReleaseExtension {
             ]
     ]
 
-    def extensionDropSQL = [
-            'pck': 'drop package',
-            'tps': 'drop type'
-    ]
-
-    String dbReleaseTemplate = 'dbrelease.sql.tmpl'
-    String scmFileTemplate = 'scmfile.sql.tmpl'
 
     void init(Project project) {
         this.project = project
@@ -74,15 +69,21 @@ class DbReleaseExtension {
             prevUrl = project.property("prevUrl")
         }
 
-        if (project.hasProperty("currRevision")) {
-            currRevision = project.property("currRevision")
+        if (project.hasProperty("newRevision")) {
+            newRevision = project.property("newRevision")
         }
 
-        if (project.hasProperty("prevRevision")) {
-            prevRevision = project.property("prevRevision")
+        if (project.hasProperty("currentRevision")) {
+            currentRevision = project.property("currentRevision")
         }
 
-        monopol = project.findProperty("monopol") ?: "1"
+        monopol = getProjectProperty('monopol') ?: '1'
+
+        dbReleaseTemplate = getProjectProperty('dbReleaseTemplate')
+
+        scmFileTemplate = getProjectProperty('scmFileTemplate')
+
+        spprDeliveryNumber = getSpprDeliveryNumber()
 
         isCheckReleaseNumberNeeded = project.findProperty("isCheckReleaseNumberNeeded") ?: "1"
 
@@ -105,5 +106,15 @@ class DbReleaseExtension {
 
     DbReleaseExtension(Project project) {
         this.project = project
+    }
+
+    String getSpprDeliveryNumber() {
+        return project.projectDir.toString().contains('releases') ?
+                project.settings.get('spprDeliveryNumber') :
+                project.name.split('-')[1]
+    }
+
+    String getProjectProperty(String name) {
+        return project.findProperty(name) ?: project.settings.get(name)
     }
 }
