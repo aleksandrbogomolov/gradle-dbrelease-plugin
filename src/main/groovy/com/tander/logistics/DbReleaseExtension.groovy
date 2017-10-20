@@ -30,33 +30,7 @@ class DbReleaseExtension {
     String dbReleaseTemplate
     String scmFileTemplate
 
-    LinkedHashMap sectionWildcards = [
-            'TMPL_SCRIPT_BEFORE_INSTALL': [
-                    '*/before/*.sql',
-                    '*.ind',
-                    '*.seq',
-                    '*.tab',
-                    '*.alt',
-                    '*_rec_t.tps',
-                    '*_tab_t.tps',
-                    '*.q',
-                    '*.tpsalt',
-                    '*.vw',
-                    '*.mw',
-                    '*.syn',
-                    '*.trg',
-                    '*.qtb',
-                    '*.pck',
-                    '*.prc',
-                    '*.fnc',
-                    '*.dic',
-                    '*.job'
-            ],
-            'TMPL_SCRIPT_AFTER_INSTALL' : [
-                    '*/after/*.sql'
-            ]
-    ]
-
+    LinkedHashMap sectionWildcards
 
     void init(Project project) {
         this.project = project
@@ -102,6 +76,8 @@ class DbReleaseExtension {
         if (!password) {
             password = ''
         }
+
+        sectionWildcards = project.sectionWildcards
     }
 
     DbReleaseExtension(Project project) {
