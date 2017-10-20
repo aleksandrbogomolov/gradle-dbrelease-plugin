@@ -69,8 +69,7 @@ class DbReleaseScript {
         binding["TMPL_CONFIG_TASK"] = ext.spprDeliveryNumber
         binding["TMPL_CONFIG_DATECREATED"] = "${new Date().format("dd.MM.yyyy HH:mm:ss z", TimeZone.getTimeZone('UTC'))}"
         binding["TMPL_CONFIG_USERCREATED"] = ext.user
-        binding["TMPL_CONFIG_REVISION"] = currBranch.getRevisionName()
-        binding["TMPL_CONFIG_MONOPOL"] = ext.monopol
+        binding["TMPL_CONFIG_MONOPOL"] = ext.isMonopol
         binding["TMPL_CONFIG_CHECKVERS"] = ext.isCheckReleaseNumberNeeded
         binding["TMPL_CONFIG_CHECKREVISION"] = ""
         binding["TMPL_CONFIG_UPDATEVERS"] = ext.isUpdateReleaseNumberNeeded
