@@ -18,9 +18,9 @@ class DbReleaseExtension {
     String releaseVersion
     String currUrl
     String prevUrl
-    String newRevision
-    String currentRevision
-    String monopol
+    String currRevision
+    String prevRevision
+    String isMonopol
     boolean isRelease
 
     String isCheckReleaseNumberNeeded
@@ -69,15 +69,15 @@ class DbReleaseExtension {
             prevUrl = project.property("prevUrl")
         }
 
-        if (project.hasProperty("newRevision")) {
-            newRevision = project.property("newRevision")
+        if (project.hasProperty("currRevision")) {
+            currRevision = project.property("currRevision")
         }
 
-        if (project.hasProperty("currentRevision")) {
-            currentRevision = project.property("currentRevision")
+        if (project.hasProperty("prevRevision")) {
+            prevRevision = project.property("prevRevision")
         }
 
-        monopol = getProjectProperty('monopol') ?: '1'
+        isMonopol = getProjectProperty('isMonopol') ?: '1'
 
         dbReleaseTemplate = getProjectProperty('dbReleaseTemplate')
 
@@ -85,11 +85,11 @@ class DbReleaseExtension {
 
         spprDeliveryNumber = getSpprDeliveryNumber()
 
-        isCheckReleaseNumberNeeded = project.findProperty("isCheckReleaseNumberNeeded") ?: "1"
+        isCheckReleaseNumberNeeded = project.findProperty("isCheckReleaseNumberNeeded") ?: '1'
 
-        isUpdateReleaseNumberNeeded = project.findProperty("isUpdateReleaseNumberNeeded") ?: "1"
+        isUpdateReleaseNumberNeeded = project.findProperty("isUpdateReleaseNumberNeeded") ?: '1'
 
-        isUpdateRevisionNumberNeeded = project.findProperty("isUpdateRevisionNumberNeeded") ?: "1"
+        isUpdateRevisionNumberNeeded = project.findProperty("isUpdateRevisionNumberNeeded") ?: '1'
 
         if (project.hasProperty("domainUser")) {
             user = project.property("domainUser")

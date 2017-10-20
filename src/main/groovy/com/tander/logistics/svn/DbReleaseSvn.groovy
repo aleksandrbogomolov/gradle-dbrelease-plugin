@@ -37,8 +37,8 @@ class DbReleaseSvn extends DbRelease {
             currBranch.url = currBranch.getUrlFromFolder(project.projectDir.toString())
         }
 
-        if (ext.newRevision) {
-            currBranch.revision = SVNRevision.create(ext.newRevision as long)
+        if (ext.currRevision) {
+            currBranch.revision = SVNRevision.create(ext.currRevision as long)
         } else {
             currBranch.revision = SVNRevision.create(currBranch.getLastRevision() as long)
         }
@@ -53,8 +53,8 @@ class DbReleaseSvn extends DbRelease {
             prevBranch.revision = SVNRevision.create(prevBranch.getFirstRevision() as long)
         }
 
-        if (ext.currentRevision) {
-            prevBranch.revision = SVNRevision.create(ext.currentRevision as long)
+        if (ext.prevRevision) {
+            prevBranch.revision = SVNRevision.create(ext.prevRevision as long)
         }
 
         if (ext.isRelease) {

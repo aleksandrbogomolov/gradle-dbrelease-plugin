@@ -15,16 +15,15 @@ class DbReleasePlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         DbReleaseExtension dbRelease = project.extensions.create('dbrelease', DbReleaseExtension, project)
+        dbRelease.isRelease = project.projectDir.toString().contains('releases')
         project.tasks.create('buildDbRelease', BuildDbReleaseTask)
 
         String projectName = project.getRootDir().getName()
-        if (project.projectDir.toString().contains('releases')) {
+        if (dbRelease.isRelease) {
             dbRelease.releaseVersion = projectName
-            dbRelease.isRelease = true
         } else {
             def names = projectName.split("-")
             dbRelease.releaseVersion = "${names.last()}.${names[1].substring(2)}"
-            dbRelease.isRelease = false
         }
 
         project.afterEvaluate {
