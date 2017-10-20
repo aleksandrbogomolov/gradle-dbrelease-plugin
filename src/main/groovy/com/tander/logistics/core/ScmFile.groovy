@@ -15,19 +15,17 @@ class ScmFile {
 
     ScriptType scriptType
     String name
-    String path
     String url
     String revision
     String message
     String author
     String taskNumber
     Date date
-    String dateFormatted
     int wildcardId
     String scriptSection
     int wildcardMatchCount = 0
     String wildcardsMatched = ""
-    boolean getFromUninstall
+    boolean isUninstall
 
     LinkedHashMap binding = []
 
@@ -46,19 +44,18 @@ class ScmFile {
         logger = Logging.getLogger(this.class)
     }
 
-    void checkWildcards(LinkedHashMap wildacards) {
-        wildacards.each { sectionName, wildcards ->
-            wildcards.eachWithIndex { wildcard, i ->
-                if (FilenameUtils.wildcardMatch(name, wildcard as String)) {
+    void checkWildcards(LinkedHashMap wildcards) {
+        wildcards.each { sectionName, wildcard ->
+            wildcard.eachWithIndex { w, i ->
+                if (FilenameUtils.wildcardMatch(name, w as String)) {
                     wildcardId = i as int
                     wildcardMatchCount += 1
-                    wildcardsMatched += (wildcard as String) + ', '
+                    wildcardsMatched += (w as String) + ', '
                     scriptSection = sectionName
                 }
             }
         }
         if (wildcardMatchCount > 1) {
-//            logger.warn(name + " Multiply wildcards matched: " + wildcardsMatched)
             throw new Exception(name + " Multiply wildcards matched: " + wildcardsMatched)
         } else if (wildcardMatchCount == 0) {
             logger.warn(name + " File not matched by any wildcard ")
@@ -78,6 +75,4 @@ class ScmFile {
         binding["name"] = name
         return binding
     }
-
-
 }
