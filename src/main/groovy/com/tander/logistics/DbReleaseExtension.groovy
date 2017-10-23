@@ -30,10 +30,12 @@ class DbReleaseExtension {
     String scmFileTemplate
 
     LinkedHashMap sectionWildcards
-    Map settings
+    HashMap settings
 
     void init(Project project) {
         this.project = project
+
+        settings = project.settings
 
         if (project.hasProperty("currURL")) {
             currUrl = project.property("currURL")
@@ -78,7 +80,6 @@ class DbReleaseExtension {
         }
 
         sectionWildcards = project.sectionWildcards
-        settings = project.settings
     }
 
     DbReleaseExtension(Project project) {
