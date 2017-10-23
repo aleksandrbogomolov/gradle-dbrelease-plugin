@@ -1,5 +1,5 @@
 group 'com.tander.logistics'
-version '0.2.1'
+version '0.2.2'
 
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'

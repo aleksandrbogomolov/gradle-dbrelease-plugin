@@ -14,14 +14,13 @@ class DbReleaseExtension {
     String user = ''
     String password = ''
 
-    String spprDeliveryNumber
-    String releaseVersion
     String currUrl
     String prevUrl
     String currRevision
     String prevRevision
     String isMonopol
     boolean isRelease
+    String spprDeliveryNumber
 
     String isCheckReleaseNumberNeeded
     String isUpdateReleaseNumberNeeded
@@ -31,6 +30,7 @@ class DbReleaseExtension {
     String scmFileTemplate
 
     LinkedHashMap sectionWildcards
+    Map settings
 
     void init(Project project) {
         this.project = project
@@ -78,6 +78,7 @@ class DbReleaseExtension {
         }
 
         sectionWildcards = project.sectionWildcards
+        settings = project.settings
     }
 
     DbReleaseExtension(Project project) {
@@ -86,11 +87,11 @@ class DbReleaseExtension {
 
     String getSpprDeliveryNumber() {
         return project.projectDir.toString().contains('releases') ?
-                project.settings.get('spprDeliveryNumber') :
+                settings.get('spprDeliveryNumber') :
                 project.name.split('-')[1]
     }
 
     String getProjectProperty(String name) {
-        return project.findProperty(name) ?: project.settings.get(name)
+        return project.findProperty(name) ?: settings.get(name)
     }
 }
