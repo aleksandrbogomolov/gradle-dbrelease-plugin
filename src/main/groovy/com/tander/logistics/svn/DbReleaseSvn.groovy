@@ -43,7 +43,7 @@ class DbReleaseSvn extends DbRelease {
             currBranch.revision = SVNRevision.create(currBranch.getLastRevision() as long)
         }
 
-        currBranch.version = ext.releaseVersion
+        currBranch.version = project.version
 
         if (ext.prevUrl) {
             prevBranch.url = ext.prevUrl
@@ -89,7 +89,7 @@ class DbReleaseSvn extends DbRelease {
 
             @Override
             void handleDiffStatus(SVNDiffStatus svnDiffStatus) throws SVNException {
-                if (svnDiffStatus.getKind() == SVNNodeKind.FILE) {
+                if (svnDiffStatus.getKind() == SVNNodeKind.FILE && !isNotProjectFile(svnDiffStatus.path)) {
                     scmFile = new ScmFile(svnDiffStatus.getPath())
                     scmFile.url = svnDiffStatus.getURL().toString()
                     if (scmFile.url.contains('uninstall')) {
@@ -156,5 +156,9 @@ class DbReleaseSvn extends DbRelease {
                     dispatcher)
         }
         logger.lifecycle("--------------- export finish ---------------")
+    }
+
+    boolean isNotProjectFile(String filePath) {
+        return filePath.endsWith("tmpl") || filePath.endsWith("gradle")
     }
 }
