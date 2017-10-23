@@ -89,7 +89,8 @@ class DbReleaseSvn extends DbRelease {
 
             @Override
             void handleDiffStatus(SVNDiffStatus svnDiffStatus) throws SVNException {
-                if (svnDiffStatus.getKind() == SVNNodeKind.FILE && !isNotProjectFile(svnDiffStatus.path)) {
+                boolean matched
+                if (svnDiffStatus.getKind() == SVNNodeKind.FILE) {
                     scmFile = new ScmFile(svnDiffStatus.getPath())
                     scmFile.url = svnDiffStatus.getURL().toString()
                     if (scmFile.url.contains('uninstall')) {
@@ -98,15 +99,15 @@ class DbReleaseSvn extends DbRelease {
                     if (svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
                                                                 SVNStatusType.STATUS_DELETED,
                                                                 SVNStatusType.STATUS_ADDED]) {
-                        scmFile.checkWildcards(wildcards)
+                        matched = scmFile.checkWildcards(wildcards)
                     } else {
                         logger.warn(scmFile.name + " Uncorrected file status : " + svnDiffStatus.getModificationType().toString())
                     }
 
-                    if (svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED && !scmFile.isUninstall) {
+                    if (matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED && !scmFile.isUninstall) {
                         scriptInstall.scmFiles[scmFile.name] = scmFile
                     }
-                    if (svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED || scmFile.isUninstall) {
+                    if (matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED || scmFile.isUninstall) {
                         scriptUninstall.scmFiles[scmFile.name] = scmFile
                     }
                 }
@@ -156,9 +157,5 @@ class DbReleaseSvn extends DbRelease {
                     dispatcher)
         }
         logger.lifecycle("--------------- export finish ---------------")
-    }
-
-    boolean isNotProjectFile(String filePath) {
-        return filePath.endsWith("tmpl") || filePath.endsWith("gradle")
     }
 }

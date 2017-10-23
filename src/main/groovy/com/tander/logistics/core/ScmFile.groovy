@@ -44,7 +44,7 @@ class ScmFile {
         logger = Logging.getLogger(this.class)
     }
 
-    void checkWildcards(LinkedHashMap wildcards) {
+    boolean checkWildcards(LinkedHashMap wildcards) {
         wildcards.each { sectionName, wildcard ->
             wildcard.eachWithIndex { w, i ->
                 if (FilenameUtils.wildcardMatch(name, w as String)) {
@@ -60,6 +60,7 @@ class ScmFile {
         } else if (wildcardMatchCount == 0) {
             logger.warn(name + " File not matched by any wildcard ")
         }
+        return wildcardMatchCount == 1
     }
 
     LinkedHashMap makeBinding() {
