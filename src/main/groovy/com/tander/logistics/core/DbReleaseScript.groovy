@@ -63,8 +63,8 @@ class DbReleaseScript {
         binding.clear()
         binding["TMPL_LOG_VERSION"] = "${type.dirName}_log_${currBranch.version}.lst"
         binding["TMPL_DESC_VERSION"] = "$type.dirName assembly ${currBranch.version}. Installing Software DC Oracle"
-        binding["TMPL_CONFIG_PREVIOUS_VERSION"] = type == ScriptType.stInstall ? prevBranch.version : currBranch.version
-        binding["TMPL_CONFIG_NEW_VERSION"] = type == ScriptType.stInstall ? currBranch.version : prevBranch.version
+        binding["TMPL_CONFIG_PREVIOUS_VERSION"] = prevBranch.version
+        binding["TMPL_CONFIG_NEW_VERSION"] = currBranch.version
         binding["TMPL_CONFIG_NEW_REVISION"] = currBranch.revisionName
         binding["TMPL_CONFIG_TASK"] = ext.spprDeliveryNumber
         binding["TMPL_CONFIG_DATECREATED"] = "${new Date().format("dd.MM.yyyy HH:mm:ss z", TimeZone.getTimeZone('UTC'))}"

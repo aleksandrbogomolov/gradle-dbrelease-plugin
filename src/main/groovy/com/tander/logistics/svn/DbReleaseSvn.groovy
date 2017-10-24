@@ -58,7 +58,7 @@ class DbReleaseSvn extends DbRelease {
         }
 
         if (ext.isRelease) {
-            prevBranch.version = project.settings.previousVersion
+            prevBranch.version = project.settings.get('previousVersion')
             if (!prevBranch.version) {
                 prevBranch.version = svnUtils.getPreviousVersionFromSet(currBranch.version)
             }
