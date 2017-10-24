@@ -45,19 +45,22 @@ class ScmFile {
     }
 
     boolean checkWildcards(LinkedHashMap wildcards) {
-        wildcards.each { sectionName, wildcard ->
-            wildcard.eachWithIndex { w, i ->
-                if (FilenameUtils.wildcardMatch(name, w as String)) {
-                    wildcardId = i as int
+        for (wildcard in wildcards) {
+            List values = wildcard.value as List<String>
+            for (int i = 0; i < values.size(); i++) {
+                String w = values.get(i)
+                if (FilenameUtils.wildcardMatch(name, w)) {
+                    wildcardId = i
                     wildcardMatchCount += 1
-                    wildcardsMatched += (w as String) + ', '
-                    scriptSection = sectionName
+                    wildcardsMatched += w + ', '
+                    scriptSection = wildcard.key
+                }
+                if (wildcardMatchCount == 1) {
+                    break
                 }
             }
         }
-        if (wildcardMatchCount > 1) {
-            throw new Exception(name + " Multiply wildcards matched: " + wildcardsMatched)
-        } else if (wildcardMatchCount == 0) {
+        if (wildcardMatchCount == 0) {
             logger.warn(name + " File not matched by any wildcard ")
         }
         return wildcardMatchCount == 1
