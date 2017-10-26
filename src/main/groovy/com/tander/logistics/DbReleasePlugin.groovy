@@ -15,7 +15,8 @@ class DbReleasePlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         DbReleaseExtension dbRelease = project.extensions.create('dbrelease', DbReleaseExtension, project)
-        dbRelease.isRelease = project.projectDir.toString().contains('releases')
+        dbRelease.isRelease = checkDirName(project.projectDir.toString())
+        checkDirName(project.projectDir.toString())
         project.tasks.create('buildDbRelease', BuildDbReleaseTask)
         project.tasks.create('makeEbuild', EbuildTask)
 
@@ -23,12 +24,20 @@ class DbReleasePlugin implements Plugin<Project> {
         if (dbRelease.isRelease) {
             project.version = projectName
         } else {
-            def names = projectName.split("-")
-            project.version = "${names.last()}.${names[1].substring(2)}"
+            if (project.version == Project.DEFAULT_VERSION) {
+                def names = projectName.split("-")
+                project.version = "${names.last()}.${names[1].substring(2)}"
+            }
         }
 
         project.afterEvaluate {
             dbRelease.init(project)
         }
+    }
+
+    boolean checkDirName(String dirName) {
+        def projectName = dirName.split("\\\\")
+        def regex = ~/\d*\.\d*\.\d*/
+        return regex.matcher(projectName.last()).matches()
     }
 }
