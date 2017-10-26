@@ -62,7 +62,7 @@ class DbReleaseScript {
 
         binding.clear()
         binding["TMPL_LOG_VERSION"] = "${type.dirName}_log_${currBranch.version}.lst"
-        binding["TMPL_DESC_VERSION"] = "$type.dirName assembly ${currBranch.version}. Installing Software DC Oracle"
+        binding["TMPL_DESC_VERSION"] = "$type.dirName assembly ${currBranch.version}."
         binding["TMPL_CONFIG_PREVIOUS_VERSION"] = prevBranch.version
         binding["TMPL_CONFIG_NEW_VERSION"] = currBranch.version
         binding["TMPL_CONFIG_NEW_REVISION"] = currBranch.revisionName
