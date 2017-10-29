@@ -126,11 +126,10 @@ class SvnDbReleaseBuilder extends DbRelease {
         logger.lifecycle(" files to uninstall: " + scriptUninstall.scmFiles.size())
         logger.lifecycle("--------------- diff finish ---------------")
 
-        if (scriptInstall.scmFiles.size() == 0 && scriptUninstall.scmFiles.size() == 0) {
-            throw new StopActionException('There is no data change found in project, please check this, mb need do commit')
+        if (scriptInstall.scmFiles.isEmpty() && scriptUninstall.scmFiles.isEmpty()) {
+            throw new StopActionException('There is no data change found in project, please check, mb need do commit')
         }
 
-        // и отсортируем полученные списки
         scriptInstall.sortScmFiles()
         scriptUninstall.sortScmFiles()
     }
