@@ -20,13 +20,9 @@ class SvnBranch extends ScmBranch implements IScmBranch {
 
     SVNRevision revision
 
-//    String getInstallUrl() {
-//        return url + "/install"
-//    }
-//
-//    String getUninstallUrl() {
-//        return url + "/uninstall"
-//    }
+    SvnBranch(SvnUtils svnUtils, String folderPath, String scmUrl, String revision) {
+        this.svnUtils = svnUtils
+    }
 
     @Override
     String getRevisionName() {
@@ -62,10 +58,6 @@ class SvnBranch extends ScmBranch implements IScmBranch {
         }
     }
 
-    SvnBranch(SvnUtils svnUtils, String folderPath, String scmUrl, String revision) {
-        this.svnUtils = svnUtils
-    }
-
     @Override
     String getUrlFromFolder(String path) {
         if (SVNWCUtil.isVersionedDirectory(new File(path))) {
@@ -77,18 +69,17 @@ class SvnBranch extends ScmBranch implements IScmBranch {
 
     @Override
     String getFirstRevision() {
-        // получение первой ревизии в ветке
         long revisionNumber = 0
         SVNRevision firstRevision = SVNRevision.HEAD
 
-        ISVNLogEntryHandler isvnLogEntryHandler = new ISVNLogEntryHandler() {
+        ISVNLogEntryHandler svnLogEntryHandler = new ISVNLogEntryHandler() {
             @Override
             void handleLogEntry(SVNLogEntry logEntry) throws SVNException {
                 revisionNumber = logEntry.getRevision()
             }
         }
 
-        svnUtils.doLog(url, SVNRevision.create(0), SVNRevision.HEAD, 1, isvnLogEntryHandler)
+        svnUtils.doLog(url, SVNRevision.create(0), SVNRevision.HEAD, 1, svnLogEntryHandler)
         if (firstRevision != 0) {
             firstRevision = SVNRevision.create(revisionNumber)
         }
@@ -97,18 +88,17 @@ class SvnBranch extends ScmBranch implements IScmBranch {
 
     @Override
     String getLastRevision() {
-        // получение первой ревизии в ветке
         long revisionNumber = 0
         SVNRevision firstRevision = SVNRevision.HEAD
 
-        ISVNLogEntryHandler isvnLogEntryHandler = new ISVNLogEntryHandler() {
+        ISVNLogEntryHandler svnLogEntryHandler = new ISVNLogEntryHandler() {
             @Override
             void handleLogEntry(SVNLogEntry logEntry) throws SVNException {
                 revisionNumber = logEntry.getRevision()
             }
         }
 
-        svnUtils.doLog(url, SVNRevision.HEAD, SVNRevision.create(0), 1, isvnLogEntryHandler)
+        svnUtils.doLog(url, SVNRevision.HEAD, SVNRevision.create(0), 1, svnLogEntryHandler)
         if (firstRevision != 0) {
             firstRevision = SVNRevision.create(revisionNumber)
         }
