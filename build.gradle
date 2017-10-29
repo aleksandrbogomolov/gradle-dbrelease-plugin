@@ -1,5 +1,5 @@
 group 'com.tander.logistics'
-version '0.2.4'
+version '0.2.5'
 
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
@@ -19,12 +19,13 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 publishing {
     repositories {
         maven {
+            //noinspection GroovyAssignabilityCheck
             credentials {
                 username project.properties.domainUser
                 password project.properties.domainPassword

@@ -15,7 +15,7 @@
 //class BuildDbReleaseTaskTest extends GroovyTestCase {
 //    Project project
 //    DbReleasePlugin plugin
-//    BuildDbReleaseTask task
+//    DbReleaseBuildTask task
 //    Profiler profiler
 //
 //
@@ -26,7 +26,7 @@
 //                .build()
 //        plugin = new DbReleasePlugin()
 //        plugin.apply(project)
-//        task = project.tasks.findByName("buildDbRelease") as BuildDbReleaseTask
+//        task = project.tasks.findByName("buildDbRelease") as DbReleaseBuildTask
 //        DbReleaseExtension ext = project.extensions.findByType(DbReleaseExtension)
 ////        ext.user = System.getProperty('domainUser')
 ////        ext.password = System.getProperty('domainPassword')

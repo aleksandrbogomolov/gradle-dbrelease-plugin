@@ -20,13 +20,13 @@ class SvnBranch extends ScmBranch implements IScmBranch {
 
     SVNRevision revision
 
-    String getInstallUrl() {
-        return url + "/install"
-    }
-
-    String getUninstallUrl() {
-        return url + "/uninstall"
-    }
+//    String getInstallUrl() {
+//        return url + "/install"
+//    }
+//
+//    String getUninstallUrl() {
+//        return url + "/uninstall"
+//    }
 
     @Override
     String getRevisionName() {

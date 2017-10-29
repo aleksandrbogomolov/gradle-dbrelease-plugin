@@ -32,6 +32,10 @@ class DbReleaseExtension {
     LinkedHashMap sectionWildcards
     HashMap settings
 
+    DbReleaseExtension(Project project) {
+        this.project = project
+    }
+
     void init(Project project) {
         this.project = project
 
@@ -82,16 +86,20 @@ class DbReleaseExtension {
         sectionWildcards = project.sectionWildcards
     }
 
-    DbReleaseExtension(Project project) {
-        this.project = project
-    }
-
+    /**
+     * Ищет задачу СППР связанную с проектом. Если релиз ищет в свойствах проекта иначе в имени проекта
+     * @return код задачи или {@code null}
+     */
     String getSpprDeliveryNumber() {
-        return project.projectDir.toString().contains('releases') ?
-                settings.get('spprDeliveryNumber') :
-                project.name.split('-')[1]
+        return isRelease ? getProjectProperty('spprDeliveryNumber') : project.name.split('-')[1]
     }
 
+    /**
+     * Ищет по имени свойство проекта. Сначала в аргументах командной строки и свойствах проекта, затем в секции
+     * "project.ext.settings" в файле "project_settings"
+     * @param name имя свойства
+     * @return значение свойства или {@code null} если ничего не найдено
+     */
     String getProjectProperty(String name) {
         return project.findProperty(name) ?: settings.get(name)
     }

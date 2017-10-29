@@ -2,9 +2,9 @@ package com.tander.logistics.core
 
 /**
  * Created by durov_an on 21.12.2016.
+ *
+ * Типы скриптов
  */
-
-// типы скриптов
 enum ScriptType {
 
     stInstall("install"),

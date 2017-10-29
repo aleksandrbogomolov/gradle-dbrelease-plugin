@@ -1,6 +1,5 @@
-package com.tander.logistics.svn
+package com.tander.logistics.core
 
-import com.tander.logistics.core.ScmFile
 import org.gradle.api.logging.Logger
 import org.tmatesoft.svn.core.ISVNLogEntryHandler
 import org.tmatesoft.svn.core.SVNException

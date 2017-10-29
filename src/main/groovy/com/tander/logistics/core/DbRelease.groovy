@@ -21,8 +21,8 @@ abstract class DbRelease {
     String projectDir
 
     LinkedHashMap wildcards
-    DbReleaseScript scriptInstall
-    DbReleaseScript scriptUninstall
+    DbTemplate scriptInstall
+    DbTemplate scriptUninstall
 
     DbRelease(Project project) {
         this.project = project
@@ -35,7 +35,7 @@ abstract class DbRelease {
         releaseDir = new File(project.buildDir.getPath(), RELEASE_PATH)
         releaseDir.deleteDir()
 
-        scriptInstall = new DbReleaseScript(ScriptType.stInstall, this, project)
-        scriptUninstall = new DbReleaseScript(ScriptType.stUninstall, this, project)
+        scriptInstall = new DbTemplate(ScriptType.stInstall, this, project)
+        scriptUninstall = new DbTemplate(ScriptType.stUninstall, this, project)
     }
 }

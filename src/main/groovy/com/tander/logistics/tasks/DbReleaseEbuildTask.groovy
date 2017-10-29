@@ -7,11 +7,11 @@ import org.gradle.api.tasks.TaskAction
 /**
  * Created by bogomolov_av on 23.10.2017
  */
-class EbuildTask extends DefaultTask {
+class DbReleaseEbuildTask extends DefaultTask {
 
     DbReleaseExtension ext
 
-    EbuildTask() {
+    DbReleaseEbuildTask() {
         group = "build"
         description = 'Generate ebuild file'
     }
@@ -22,12 +22,12 @@ class EbuildTask extends DefaultTask {
         File destinationDir = new File(project.buildDir, "ebuilds")
         destinationDir.mkdirs()
         StringBuilder template = new StringBuilder("")
-        new File("${ext.settings.get('oraEbuildTemplate')}").eachLine { l ->
-            if (l.contains('ora')) {
-                l = l.substring(0, l.lastIndexOf('-') + 1) + project.version
+        new File("${ext.getProjectProperty('oraEbuildTemplate')}").eachLine { line ->
+            if (line.contains('ora')) {
+                line = line.substring(0, line.lastIndexOf('-') + 1) + project.version
             }
-            template.append("$l\n")
+            template.append("$line\n")
         }
-        new File(destinationDir, "${ext.settings.get('ebuildName')}-${project.version}.ebuild").write(template.toString(), "UTF-8")
+        new File(destinationDir, "${ext.getProjectProperty('ebuildName')}-${project.version}.ebuild").write(template.toString(), "UTF-8")
     }
 }
