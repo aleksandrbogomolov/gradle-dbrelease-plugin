@@ -21,7 +21,7 @@ class SvnUtils {
 
     SvnUtils(String username, char[] password) {
         DAVRepositoryFactory.setup()
-        ISVNAuthenticationProvider provider = new AuthenticationProvider()
+        ISVNAuthenticationProvider provider = new SvnAuthProvider()
         authManager = SVNWCUtil.createDefaultAuthenticationManager(username, password)
         authManager.setAuthenticationProvider(provider)
         clientManager = SVNClientManager.newInstance(SVNWCUtil.createDefaultOptions(true), authManager)

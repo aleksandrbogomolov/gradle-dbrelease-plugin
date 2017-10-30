@@ -2,7 +2,9 @@ package com.tander.logistics.svn
 
 import com.tander.logistics.core.DbRelease
 import com.tander.logistics.core.ScmFile
+import com.tander.logistics.core.ScmFileLogEntryHandler
 import org.gradle.api.Project
+import org.gradle.api.tasks.StopActionException
 import org.tmatesoft.svn.core.SVNCancelException
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNNodeKind
@@ -11,13 +13,13 @@ import org.tmatesoft.svn.core.wc.*
 /**
  * Created by durov_an on 22.12.2016.
  */
-class DbReleaseSvn extends DbRelease {
+class SvnDbReleaseBuilder extends DbRelease {
 
     SvnUtils svnUtils
     SvnBranch currBranch
     SvnBranch prevBranch
 
-    DbReleaseSvn(Project project) {
+    SvnDbReleaseBuilder(Project project) {
         super(project)
 
         this.svnUtils = new SvnUtils(ext.user, ext.password.toCharArray())
@@ -124,7 +126,10 @@ class DbReleaseSvn extends DbRelease {
         logger.lifecycle(" files to uninstall: " + scriptUninstall.scmFiles.size())
         logger.lifecycle("--------------- diff finish ---------------")
 
-        // и отсортируем полученные списки
+        if (scriptInstall.scmFiles.isEmpty() && scriptUninstall.scmFiles.isEmpty()) {
+            throw new StopActionException('There is no data change found in project, please check, mb need do commit')
+        }
+
         scriptInstall.sortScmFiles()
         scriptUninstall.sortScmFiles()
     }

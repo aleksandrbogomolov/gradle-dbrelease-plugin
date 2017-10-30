@@ -2,7 +2,7 @@ package com.tander.logistics.tasks
 
 import com.tander.logistics.DbReleaseExtension
 import com.tander.logistics.core.DbRelease
-import com.tander.logistics.svn.DbReleaseSvn
+import com.tander.logistics.svn.SvnDbReleaseBuilder
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
@@ -12,11 +12,11 @@ import org.gradle.api.tasks.TaskAction
  * Таск для сборки БД релиза.
  */
 
-class BuildDbReleaseTask extends DefaultTask {
+class DbReleaseBuildTask extends DefaultTask {
 
     DbReleaseExtension ext
 
-    BuildDbReleaseTask() {
+    DbReleaseBuildTask() {
         group = "build"
         description = 'Generate install and uninstall DB release'
     }
@@ -24,7 +24,7 @@ class BuildDbReleaseTask extends DefaultTask {
     @TaskAction
     void run() {
         this.ext = project.extensions.findByName('dbrelease') as DbReleaseExtension
-        DbRelease dbRelease = new DbReleaseSvn(project)
+        DbRelease dbRelease = new SvnDbReleaseBuilder(project)
         dbRelease.setChangedFilesByDiff()
         dbRelease.setLastCommitInfo()
         dbRelease.exportChangedFilesToDir()

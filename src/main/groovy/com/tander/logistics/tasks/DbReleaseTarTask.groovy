@@ -6,9 +6,9 @@ import org.gradle.api.tasks.bundling.Tar
 /**
  * Created by durov_an on 09.02.2017.
  */
-class TarDbRelease extends Tar {
+class DbReleaseTarTask extends Tar {
 
-    TarDbRelease() {
+    DbReleaseTarTask() {
         dependsOn project.tasks.findByName("buildDbRelease")
         group = 'distribution'
         compression = Compression.BZIP2

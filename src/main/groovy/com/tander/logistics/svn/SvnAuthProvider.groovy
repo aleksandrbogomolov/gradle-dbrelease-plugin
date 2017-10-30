@@ -11,10 +11,11 @@ import org.tmatesoft.svn.core.auth.SVNPasswordAuthentication
 /**
  * Created by durov_an on 08.02.2017.
  */
-class AuthenticationProvider implements ISVNAuthenticationProvider {
+class SvnAuthProvider implements ISVNAuthenticationProvider {
 
     @Override
-    SVNAuthentication requestClientAuthentication(String s, SVNURL svnurl, String s1, SVNErrorMessage svnErrorMessage, SVNAuthentication svnAuthentication, boolean b) {
+    SVNAuthentication requestClientAuthentication(String s, SVNURL svnurl, String s1, SVNErrorMessage svnErrorMessage,
+                                                  SVNAuthentication svnAuthentication, boolean b) {
         Boolean isCanceled
         String scmUser
         String scmPass

@@ -10,7 +10,7 @@ import org.gradle.api.logging.Logging
 /**
  * Created by durov_an on 31.01.2017.
  */
-class DbReleaseScript {
+class DbTemplate {
 
     protected Logger logger
 
@@ -29,7 +29,7 @@ class DbReleaseScript {
     File scmFileTemplateFile
     Template scmFileTemplate
 
-    DbReleaseScript(ScriptType scriptType, DbRelease release, Project project) {
+    DbTemplate(ScriptType scriptType, DbRelease release, Project project) {
         logger = Logging.getLogger(this.class)
         this.type = scriptType
         this.project = project
@@ -105,7 +105,7 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
             binding[it.key] = it.value
         }
 
-        DbScriptTemplate installTemplate = new DbScriptTemplate(new File(project.projectDir, ext.dbReleaseTemplate))
+        DbScriptBuilder installTemplate = new DbScriptBuilder(new File(project.projectDir, ext.dbReleaseTemplate))
         installTemplate.makeScript(release.releaseDir.path + "/${type.dirName}.sql", binding)
     }
 

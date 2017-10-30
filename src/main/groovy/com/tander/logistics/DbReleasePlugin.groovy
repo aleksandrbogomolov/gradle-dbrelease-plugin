@@ -1,7 +1,8 @@
 package com.tander.logistics
 
-import com.tander.logistics.tasks.BuildDbReleaseTask
-import com.tander.logistics.tasks.EbuildTask
+import com.tander.logistics.util.FileUtils
+import com.tander.logistics.tasks.DbReleaseBuildTask
+import com.tander.logistics.tasks.DbReleaseEbuildTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -15,12 +16,21 @@ class DbReleasePlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         DbReleaseExtension dbRelease = project.extensions.create('dbrelease', DbReleaseExtension, project)
-        dbRelease.isRelease = checkDirName(project.projectDir.toString())
-        checkDirName(project.projectDir.toString())
-        project.tasks.create('buildDbRelease', BuildDbReleaseTask)
-        project.tasks.create('makeEbuild', EbuildTask)
 
-        String projectName = project.getRootDir().getName()
+        String projectName = FileUtils.getProjectName(project)
+        dbRelease.isRelease = FileUtils.checkByPattern(projectName, ~/\d+\.\d+\.\d+/)
+
+        project.tasks.create('buildDbRelease', DbReleaseBuildTask)
+        project.tasks.create('makeEbuild', DbReleaseEbuildTask)
+
+        setProjectVersion(dbRelease, projectName, project)
+
+        project.afterEvaluate {
+            dbRelease.init(project)
+        }
+    }
+
+    private void setProjectVersion(DbReleaseExtension dbRelease, String projectName, Project project) {
         if (dbRelease.isRelease) {
             project.version = projectName
         } else {
@@ -29,15 +39,5 @@ class DbReleasePlugin implements Plugin<Project> {
                 project.version = "${names.last()}.${names[1].substring(2)}"
             }
         }
-
-        project.afterEvaluate {
-            dbRelease.init(project)
-        }
-    }
-
-    boolean checkDirName(String dirName) {
-        def projectName = dirName.split("\\\\")
-        def regex = ~/\d*\.\d*\.\d*/
-        return regex.matcher(projectName.last()).matches()
     }
 }

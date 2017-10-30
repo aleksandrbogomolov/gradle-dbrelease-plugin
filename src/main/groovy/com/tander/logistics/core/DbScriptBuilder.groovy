@@ -8,11 +8,11 @@ import groovy.text.Template
  *
  * Формирование итоговых скриптов на основании шаблонов
  */
-class DbScriptTemplate {
+class DbScriptBuilder {
 
     Template template
 
-    DbScriptTemplate(String templateFilePath) {
+    DbScriptBuilder(String templateFilePath) {
         File templateFile = new File(templateFilePath)
         SimpleTemplateEngine engine = new SimpleTemplateEngine()
         template = engine.createTemplate(templateFile)
@@ -23,7 +23,7 @@ class DbScriptTemplate {
         }
     }
 
-    DbScriptTemplate(File templateFile) {
+    DbScriptBuilder(File templateFile) {
         SimpleTemplateEngine engine = new SimpleTemplateEngine()
         if (templateFile.exists()) {
             template = engine.createTemplate(templateFile)
