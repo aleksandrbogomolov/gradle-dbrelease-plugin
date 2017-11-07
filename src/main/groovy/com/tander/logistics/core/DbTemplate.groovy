@@ -68,7 +68,7 @@ class DbTemplate {
         stat += "prompt ...[INFO] Statistics\n"
     }
 
-    LinkedHashMap fillTemplateVariable() {
+    LinkedHashMap makeTemplateHeadBinding() {
         LinkedHashMap binding = []
 
         binding.clear()
@@ -103,7 +103,7 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
             }
         }
 
-        def binding = fillTemplateVariable()
+        def binding = makeTemplateHeadBinding()
 
         schemas.each { k, v ->
             if (binding.get(v.keySet()[0])) {

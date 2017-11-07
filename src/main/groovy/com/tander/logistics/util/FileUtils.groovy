@@ -36,7 +36,7 @@ class FileUtils {
         project.getRootDir().getName()
     }
 
-    static Comparator<ScmFile> schemaFilesComparator = new Comparator<ScmFile>() {
+    static Comparator<ScmFile> schemaFileComparator = new Comparator<ScmFile>() {
         @Override
         int compare(ScmFile o1, ScmFile o2) {
             if (o1.wildcardId > o2.wildcardId) {

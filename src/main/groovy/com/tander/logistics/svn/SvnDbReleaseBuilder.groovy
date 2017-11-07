@@ -139,7 +139,7 @@ class SvnDbReleaseBuilder extends DbRelease {
         }
 
         schemas.values().each { l ->
-            l.sort(FileUtils.schemaFilesComparator)
+            l.sort(FileUtils.schemaFileComparator)
         }
     }
 
