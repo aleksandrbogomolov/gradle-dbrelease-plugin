@@ -2,7 +2,6 @@ package com.tander.logistics.svn
 
 import com.tander.logistics.core.DbRelease
 import com.tander.logistics.core.ScmFile
-import com.tander.logistics.core.ScmFileLogEntryHandler
 import com.tander.logistics.util.FileUtils
 import org.gradle.api.Project
 import org.gradle.api.tasks.StopActionException
@@ -73,7 +72,7 @@ class SvnDbReleaseBuilder extends DbRelease {
     }
 
     void setLastCommitInfo() {
-        ScmFileLogEntryHandler logEntryHandler = new ScmFileLogEntryHandler()
+        SvnFileLogEntryHandler logEntryHandler = new SvnFileLogEntryHandler()
 
         logger.lifecycle("--------------- get revision info start ---------------")
 
