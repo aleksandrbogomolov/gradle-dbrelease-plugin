@@ -5,7 +5,6 @@ import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
-
 /**
  * Created by durov_an on 22.12.2016.
  */
@@ -20,6 +19,7 @@ abstract class DbRelease {
 
     String projectDir
 
+    LinkedHashMap<String, ArrayList<ScmFile>> schemas
     LinkedHashMap wildcards
     DbTemplate scriptInstall
     DbTemplate scriptUninstall
@@ -27,6 +27,7 @@ abstract class DbRelease {
     DbRelease(Project project) {
         this.project = project
         this.ext = project.extensions.findByName('dbrelease') as DbReleaseExtension
+        this.schemas = ext.schemas
         this.wildcards = ext.sectionWildcards
 
         logger = Logging.getLogger(this.class)

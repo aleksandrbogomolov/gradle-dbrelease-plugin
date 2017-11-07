@@ -1,5 +1,6 @@
 package com.tander.logistics.util
 
+import com.tander.logistics.core.ScmFile
 import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Project
 
@@ -33,5 +34,24 @@ class FileUtils {
 
     static String getProjectName(Project project) {
         project.getRootDir().getName()
+    }
+
+    static Comparator<ScmFile> schemaFileComparator = new Comparator<ScmFile>() {
+        @Override
+        int compare(ScmFile o1, ScmFile o2) {
+            if (o1.wildcardId > o2.wildcardId) {
+                return 1
+            }
+            if (o1.wildcardId < o2.wildcardId) {
+                return -1
+            }
+            if (o1.name > o2.name) {
+                return 1
+            }
+            if (o1.name < o2.name) {
+                return -1
+            }
+            return 0
+        }
     }
 }

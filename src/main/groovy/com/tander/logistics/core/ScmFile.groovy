@@ -11,7 +11,7 @@ import org.gradle.api.logging.Logging
  */
 class ScmFile {
 
-    protected Logger logger
+    Logger logger
 
     ScriptType scriptType
     String name
@@ -20,6 +20,7 @@ class ScmFile {
     String message
     String author
     String taskNumber
+    String schema
     Date date
     int wildcardId
     String scriptSection
@@ -44,24 +45,31 @@ class ScmFile {
         logger = Logging.getLogger(this.class)
     }
 
-    boolean checkWildcards(LinkedHashMap wildcards) {
-        for (wildcard in wildcards) {
-            List values = wildcard.value as List<String>
-            for (int i = 0; i < values.size(); i++) {
-                String w = values.get(i)
-                if (FilenameUtils.wildcardMatch(name, w)) {
-                    wildcardId = i
-                    wildcardMatchCount += 1
-                    wildcardsMatched += w + ', '
-                    scriptSection = wildcard.key
+    boolean checkWildcards(Map<String, List<ScmFile>> schemas, Map wildcards) {
+        for (s in schemas.keySet()) {
+            if (FilenameUtils.wildcardMatch(name, s)) {
+                schema = s
+                for (wildcard in wildcards) {
+                    List values = wildcard.value as List<String>
+                    for (int i = 0; i < values.size(); i++) {
+                        String w = values.get(i)
+                        if (FilenameUtils.wildcardMatch(name, w)) {
+                            wildcardId = i
+                            wildcardMatchCount += 1
+                            wildcardsMatched += w + ', '
+                            scriptSection = wildcard.key
+                            schemas[s].add(this)
+                        }
+                        if (wildcardMatchCount == 1) {
+                            break
+                        }
+                    }
                 }
-                if (wildcardMatchCount == 1) {
-                    break
-                }
+                break
             }
         }
         if (wildcardMatchCount == 0) {
-            logger.warn(name + " File not matched by any wildcard ")
+            logger.warn("$name - file not matched by any wildcard")
         }
         return wildcardMatchCount == 1
     }
