@@ -6,27 +6,32 @@ import groovy.text.Template
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.tasks.StopActionException
 
 /**
  * Created by durov_an on 31.01.2017.
  */
 class DbTemplate {
 
-    protected Logger logger
+    Logger logger
 
     ScriptType type
     Project project
     DbReleaseExtension ext
     DbRelease release
 
+    LinkedHashMap<String, LinkedHashMap<String, String>> schemas = []
     LinkedHashMap<String, ScmFile> scmFiles = []
-    LinkedHashMap<String, String> scriptSections = []
 
     ScmBranch currBranch
     ScmBranch prevBranch
 
     SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
+    File schemaBeforeTemplateFile
+    File schemaAfterTemplateFile
     File scmFileTemplateFile
+    Template schemaBeforeTemplate
+    Template schemaAfterTemplate
     Template scmFileTemplate
 
     DbTemplate(ScriptType scriptType, DbRelease release, Project project) {
@@ -36,16 +41,22 @@ class DbTemplate {
         this.ext = release.ext
         this.release = release
 
+        schemaBeforeTemplateFile = new File(project.projectDir.toString(), ext.schemaBeforeTemplate)
+        if (!schemaBeforeTemplateFile.exists()) {
+            throw new StopActionException("Template not exists: " + schemaBeforeTemplateFile.canonicalPath)
+        }
+        schemaAfterTemplateFile = new File(project.projectDir.toString(), ext.schemaAfterTemplate)
+        if (!schemaAfterTemplateFile.exists()) {
+            throw new StopActionException("Template not exists: " + schemaAfterTemplateFile.canonicalPath)
+        }
         scmFileTemplateFile = new File(project.projectDir.toString(), ext.scmFileTemplate)
         if (!scmFileTemplateFile.exists()) {
-            throw new Exception("Template not exists: " + scmFileTemplateFile.canonicalPath)
+            throw new StopActionException("Template not exists: " + scmFileTemplateFile.canonicalPath)
         }
 
+        schemaBeforeTemplate = templateEngine.createTemplate(schemaBeforeTemplateFile)
+        schemaAfterTemplate = templateEngine.createTemplate(schemaAfterTemplateFile)
         scmFileTemplate = templateEngine.createTemplate(scmFileTemplateFile)
-    }
-
-    void sortScmFiles() {
-        scmFiles = scmFiles.entrySet().sort(false, scmFileComparatorWildcard).collectEntries() as LinkedHashMap<String, ScmFile>
     }
 
     String getStat() {
@@ -57,11 +68,11 @@ class DbTemplate {
         stat += "prompt ...[INFO] Statistics\n"
     }
 
-    LinkedHashMap makeBinding() {
+    LinkedHashMap fillTemplateVariable() {
         LinkedHashMap binding = []
 
         binding.clear()
-        binding["TMPL_LOG_VERSION"] = "${type.dirName}_log_${currBranch.version}.lst"
+        binding["TMPL_LOG_VERSION"] = "${type.dirName}_log_${project.version}.lst"
         binding["TMPL_DESC_VERSION"] = "$type.dirName assembly ${currBranch.version}."
         binding["TMPL_CONFIG_PREVIOUS_VERSION"] = prevBranch.version
         binding["TMPL_CONFIG_NEW_VERSION"] = currBranch.version
@@ -74,7 +85,6 @@ class DbTemplate {
         binding["TMPL_CONFIG_CHECKREVISION"] = ""
         binding["TMPL_CONFIG_UPDATEVERS"] = ext.isUpdateReleaseNumberNeeded
         binding["TMPL_CONFIG_UPDATEREVISION"] = ext.isUpdateRevisionNumberNeeded
-        binding["TMPL_CONFIG_RECOMPILING"] = "${scriptSections["TMPL_SCRIPT_AFTER_INSTALL"].toString().length() ? "1" : "0"}"
         binding["TMPL_CONFIG_LISTNODEBUGPACK"] = "0"
         binding["TMPL_CONFIG_TOTALBLOCKS"] = scmFiles.size() + 15
         binding["TMPL_INFORMATION_STATISTICS"] = getStat()
@@ -87,45 +97,54 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
     }
 
     void assemblyScript() {
-        // заполним скрипты по секциям для вставки в ${type}.sql и скопируем файлы
-        ext.sectionWildcards.each {
-            scriptSections[it.key as String] = ''
+        release.schemas.each {
+            if (!it.value.isEmpty()) {
+                schemas[getSchemaName(it.key as String)] = makeSchemaFileBinding(it.value)
+            }
         }
 
-        scmFiles.each { String fileName, ScmFile scmFile ->
-            scmFile.scriptType = type
-            scriptSections[scmFile.scriptSection] +=
-                    scmFileTemplate.make(scmFile.makeBinding()).toString()
-        }
+        def binding = fillTemplateVariable()
 
-        // создадим итоговый скрипт с помощью template движка
-        def binding = makeBinding()
-
-        scriptSections.each {
-            binding[it.key] = it.value
+        schemas.each { k, v ->
+            if (binding.get(v.keySet()[0])) {
+                binding[v.keySet()[0]] += schemaBeforeTemplate.make(makeSchemaBinding(k)).toString()
+            } else {
+                binding[v.keySet()[0]] = schemaBeforeTemplate.make(makeSchemaBinding(k)).toString()
+            }
+            v.each {
+                if (binding.get(it.key)) {
+                    binding[it.key] += it.value
+                } else {
+                    binding[it.key] = it.value
+                }
+                binding[it.key] += schemaAfterTemplate.make(makeSchemaBinding(k)).toString()
+            }
         }
 
         DbScriptBuilder installTemplate = new DbScriptBuilder(new File(project.projectDir, ext.dbReleaseTemplate))
         installTemplate.makeScript(release.releaseDir.path + "/${type.dirName}.sql", binding)
     }
 
-    // компаратор для сортировки списка файлов. Сперва сортируем по маске файла из настроек, потом по пути к файлу
-    Comparator<Map.Entry<String, ScmFile>> scmFileComparatorWildcard = new Comparator<Map.Entry<String, ScmFile>>() {
-        @Override
-        int compare(Map.Entry<String, ScmFile> o1, Map.Entry<String, ScmFile> o2) {
-            if (o1.value.wildcardId > o2.value.wildcardId) {
-                return 1
-            }
-            if (o1.value.wildcardId < o2.value.wildcardId) {
-                return -1
-            }
-            if (o1.value.name > o2.value.name) {
-                return 1
-            }
-            if (o1.value.name < o2.value.name) {
-                return -1
-            }
-            return 0
+    LinkedHashMap makeSchemaBinding(String schema) {
+        LinkedHashMap binding = []
+        binding["SCHEMA_NAME"] = schema.toUpperCase()
+        return binding
+    }
+
+    String getSchemaName(String schemaWildcard) {
+        String result = schemaWildcard.replaceAll(~/\W/, '')
+        return result.toUpperCase()
+    }
+
+    LinkedHashMap makeSchemaFileBinding(List scmFiles) {
+        LinkedHashMap<String, String> scriptSections = []
+        ext.sectionWildcards.each {
+            scriptSections[it.key as String] = ''
         }
+        scmFiles.each { ScmFile scmFile ->
+            scmFile.scriptType = type
+            scriptSections[scmFile.scriptSection] += scmFileTemplate.make(scmFile.makeBinding()).toString()
+        }
+        return scriptSections
     }
 }

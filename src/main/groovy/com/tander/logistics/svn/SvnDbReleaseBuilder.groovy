@@ -3,6 +3,7 @@ package com.tander.logistics.svn
 import com.tander.logistics.core.DbRelease
 import com.tander.logistics.core.ScmFile
 import com.tander.logistics.core.ScmFileLogEntryHandler
+import com.tander.logistics.util.FileUtils
 import org.gradle.api.Project
 import org.gradle.api.tasks.StopActionException
 import org.tmatesoft.svn.core.SVNCancelException
@@ -101,19 +102,25 @@ class SvnDbReleaseBuilder extends DbRelease {
                     if (svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
                                                                 SVNStatusType.STATUS_DELETED,
                                                                 SVNStatusType.STATUS_ADDED]) {
-                        matched = scmFile.checkWildcards(wildcards)
+                        matched = scmFile.checkWildcards(schemas, wildcards)
                     } else {
-                        logger.warn(scmFile.name + " Uncorrected file status : " + svnDiffStatus.getModificationType().toString())
+                        logger.warn(scmFile.name + " Uncorrected file status : " + svnDiffStatus
+                                .getModificationType().toString())
                     }
 
-                    if (matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED && !scmFile.isUninstall) {
+                    if (matched
+                            && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED
+                            && !scmFile.isUninstall) {
                         scriptInstall.scmFiles[scmFile.name] = scmFile
                     }
-                    if (matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED || scmFile.isUninstall) {
+                    if (matched
+                            && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED
+                            || scmFile.isUninstall) {
                         scriptUninstall.scmFiles[scmFile.name] = scmFile
                     }
                 }
-                logger.info(svnDiffStatus.getModificationType().toString() + ' ' + svnDiffStatus.getFile().toString())
+                logger.debug("${svnDiffStatus.getModificationType().toString()} " +
+                        "${svnDiffStatus.getFile().toString()}")
             }
         }
         logger.lifecycle("--------------- diff start ---------------")
@@ -127,11 +134,13 @@ class SvnDbReleaseBuilder extends DbRelease {
         logger.lifecycle("--------------- diff finish ---------------")
 
         if (scriptInstall.scmFiles.isEmpty() && scriptUninstall.scmFiles.isEmpty()) {
-            throw new StopActionException('There is no data change found in project, please check, mb need do commit')
+            throw new StopActionException('There is no data change found in project, please check,' +
+                    ' mb need do commit')
         }
 
-        scriptInstall.sortScmFiles()
-        scriptUninstall.sortScmFiles()
+        schemas.values().each { l ->
+            l.sort(FileUtils.schemaFilesComparator)
+        }
     }
 
     void exportChangedFilesToDir() {
@@ -140,7 +149,7 @@ class SvnDbReleaseBuilder extends DbRelease {
             @Override
             void handleEvent(SVNEvent svnEvent, double v) throws SVNException {
                 if (svnEvent.getAction() == SVNEventAction.UPDATE_COMPLETED) {
-                    logger.lifecycle(" export file " + svnEvent.getFile().toString())
+                    logger.debug(" export file " + svnEvent.getFile().toString())
                 }
             }
 

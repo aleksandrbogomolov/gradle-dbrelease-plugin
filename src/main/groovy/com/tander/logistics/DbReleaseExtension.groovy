@@ -27,9 +27,12 @@ class DbReleaseExtension {
     String isUpdateRevisionNumberNeeded
 
     String dbReleaseTemplate
+    String schemaBeforeTemplate
+    String schemaAfterTemplate
     String scmFileTemplate
 
     LinkedHashMap sectionWildcards
+    LinkedHashMap schemas
     HashMap settings
 
     DbReleaseExtension(Project project) {
@@ -40,6 +43,8 @@ class DbReleaseExtension {
         this.project = project
 
         settings = project.settings
+
+        schemas = project.schemas
 
         if (project.hasProperty("currURL")) {
             currUrl = project.property("currURL")
@@ -60,6 +65,10 @@ class DbReleaseExtension {
         isMonopol = getProjectProperty('isMonopol') ?: '1'
 
         dbReleaseTemplate = getProjectProperty('dbReleaseTemplate')
+
+        schemaBeforeTemplate = getProjectProperty('schemaBeforeTemplate')
+
+        schemaAfterTemplate = getProjectProperty('schemaAfterTemplate')
 
         scmFileTemplate = getProjectProperty('scmFileTemplate')
 
