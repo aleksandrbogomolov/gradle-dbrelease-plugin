@@ -19,6 +19,8 @@ class SvnDbReleaseBuilder extends DbRelease {
     SvnBranch currBranch
     SvnBranch prevBranch
 
+    List<ScmFile> notMatched = new ArrayList<>()
+
     SvnDbReleaseBuilder(Project project) {
         super(project)
 
@@ -112,6 +114,9 @@ class SvnDbReleaseBuilder extends DbRelease {
                     if (matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED || scmFile.isUninstall) {
                         scriptUninstall.scmFiles[scmFile.name] = scmFile
                     }
+                    if (!matched) {
+                        notMatched.add(scmFile)
+                    }
                 }
                 logger.info(svnDiffStatus.getModificationType().toString() + ' ' + svnDiffStatus.getFile().toString())
             }
@@ -122,12 +127,21 @@ class SvnDbReleaseBuilder extends DbRelease {
                 currBranch.getUrl(),
                 currBranch.revision,
                 diffStatusHandler)
+
+        if (!notMatched.isEmpty()) {
+            logger.warn("Not matched files:")
+            notMatched.each { f ->
+                logger.warn(f.name)
+            }
+            throw new Exception("Found files not matched by any wildcard, check project_settings.gradle")
+        }
+
         logger.lifecycle(" files to install: " + scriptInstall.scmFiles.size())
         logger.lifecycle(" files to uninstall: " + scriptUninstall.scmFiles.size())
         logger.lifecycle("--------------- diff finish ---------------")
 
         if (scriptInstall.scmFiles.isEmpty() && scriptUninstall.scmFiles.isEmpty()) {
-            throw new StopActionException('There is no data change found in project, please check, mb need do commit')
+            throw new Exception('There is no data change found in project, please check, mb need do commit')
         }
 
         scriptInstall.sortScmFiles()

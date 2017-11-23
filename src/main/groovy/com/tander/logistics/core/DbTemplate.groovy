@@ -61,7 +61,7 @@ class DbTemplate {
         LinkedHashMap binding = []
 
         binding.clear()
-        binding["TMPL_LOG_VERSION"] = "${type.dirName}_log_${currBranch.version}.lst"
+        binding["TMPL_LOG_VERSION"] = "${type.dirName}_log_${project.version}.lst"
         binding["TMPL_DESC_VERSION"] = "$type.dirName assembly ${currBranch.version}."
         binding["TMPL_CONFIG_PREVIOUS_VERSION"] = prevBranch.version
         binding["TMPL_CONFIG_NEW_VERSION"] = currBranch.version

@@ -65,11 +65,11 @@ class DbReleaseExtension {
 
         spprDeliveryNumber = getSpprDeliveryNumber()
 
-        isCheckReleaseNumberNeeded = project.findProperty("isCheckReleaseNumberNeeded") ?: '1'
+        isCheckReleaseNumberNeeded = getProjectProperty("isCheckReleaseNumberNeeded") ?: '1'
 
-        isUpdateReleaseNumberNeeded = project.findProperty("isUpdateReleaseNumberNeeded") ?: '1'
+        isUpdateReleaseNumberNeeded = getProjectProperty("isUpdateReleaseNumberNeeded") ?: '1'
 
-        isUpdateRevisionNumberNeeded = project.findProperty("isUpdateRevisionNumberNeeded") ?: '1'
+        isUpdateRevisionNumberNeeded = getProjectProperty("isUpdateRevisionNumberNeeded") ?: '1'
 
         if (project.hasProperty("domainUser")) {
             user = project.property("domainUser")
