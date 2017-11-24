@@ -31,6 +31,7 @@ class DbReleaseExtension {
 
     LinkedHashMap sectionWildcards
     HashMap settings
+    List<String> excludeFiles
 
     DbReleaseExtension(Project project) {
         this.project = project
@@ -84,6 +85,8 @@ class DbReleaseExtension {
         }
 
         sectionWildcards = project.sectionWildcards
+
+        excludeFiles = project.excludeFiles
     }
 
     /**

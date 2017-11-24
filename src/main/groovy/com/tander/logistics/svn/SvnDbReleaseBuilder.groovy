@@ -3,8 +3,8 @@ package com.tander.logistics.svn
 import com.tander.logistics.core.DbRelease
 import com.tander.logistics.core.ScmFile
 import com.tander.logistics.core.ScmFileLogEntryHandler
+import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Project
-import org.gradle.api.tasks.StopActionException
 import org.tmatesoft.svn.core.SVNCancelException
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNNodeKind
@@ -115,7 +115,15 @@ class SvnDbReleaseBuilder extends DbRelease {
                         scriptUninstall.scmFiles[scmFile.name] = scmFile
                     }
                     if (!matched) {
-                        notMatched.add(scmFile)
+                        boolean isNotExclude = true
+                        for (exclude in ext.excludeFiles) {
+                            if (FilenameUtils.wildcardMatch(scmFile.name, exclude)) {
+                                isNotExclude = false
+                            }
+                        }
+                        if (isNotExclude) {
+                            notMatched.add(scmFile)
+                        }
                     }
                 }
                 logger.info(svnDiffStatus.getModificationType().toString() + ' ' + svnDiffStatus.getFile().toString())
