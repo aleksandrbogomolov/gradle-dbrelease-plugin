@@ -2,9 +2,9 @@ package com.tander.logistics.svn
 
 import com.tander.logistics.core.DbRelease
 import com.tander.logistics.core.ScmFile
-import com.tander.logistics.util.FileUtils
+import com.tander.logistics.core.ScriptType
+import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Project
-import org.gradle.api.tasks.StopActionException
 import org.tmatesoft.svn.core.SVNCancelException
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNNodeKind
@@ -19,6 +19,8 @@ class SvnDbReleaseBuilder extends DbRelease {
     SvnBranch currBranch
     SvnBranch prevBranch
 
+    List<ScmFile> notMatched = new ArrayList<>()
+
     SvnDbReleaseBuilder(Project project) {
         super(project)
 
@@ -32,6 +34,8 @@ class SvnDbReleaseBuilder extends DbRelease {
 
         scriptUninstall.prevBranch = currBranch
         scriptUninstall.currBranch = prevBranch
+
+        project.version = ext.getProjectProperty("newVersion") ?: project.version
 
         if (ext.currUrl) {
             currBranch.url = ext.currUrl
@@ -59,13 +63,13 @@ class SvnDbReleaseBuilder extends DbRelease {
             prevBranch.revision = SVNRevision.create(ext.prevRevision as long)
         }
 
-        if (ext.isRelease) {
-            prevBranch.version = project.settings.get('previousVersion')
-            if (!prevBranch.version) {
+        prevBranch.version = project.settings.get('previousVersion')
+        if (!prevBranch.version) {
+            if (ext.isRelease) {
                 prevBranch.version = svnUtils.getPreviousVersionFromSet(currBranch.version)
+            } else {
+                prevBranch.version = currBranch.version.take(currBranch.version.lastIndexOf("."))
             }
-        } else {
-            prevBranch.version = currBranch.version.take(currBranch.version.lastIndexOf("."))
         }
 
         svnUtils.testConnection(currBranch.url)
@@ -111,11 +115,24 @@ class SvnDbReleaseBuilder extends DbRelease {
                             && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED
                             && !scmFile.isUninstall) {
                         scriptInstall.scmFiles[scmFile.name] = scmFile
+                        scmFile.scriptType = ScriptType.stInstall
                     }
                     if (matched
                             && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED
                             || scmFile.isUninstall) {
                         scriptUninstall.scmFiles[scmFile.name] = scmFile
+                        scmFile.scriptType = ScriptType.stUninstall
+                    }
+                    if (!matched) {
+                        boolean isNotExclude = true
+                        for (exclude in ext.excludeFiles) {
+                            if (FilenameUtils.wildcardMatch(scmFile.name, exclude)) {
+                                isNotExclude = false
+                            }
+                        }
+                        if (isNotExclude) {
+                            notMatched.add(scmFile)
+                        }
                     }
                 }
                 logger.debug("${svnDiffStatus.getModificationType().toString()} " +
@@ -128,17 +145,21 @@ class SvnDbReleaseBuilder extends DbRelease {
                 currBranch.getUrl(),
                 currBranch.revision,
                 diffStatusHandler)
+
+        if (!notMatched.isEmpty()) {
+            logger.warn("Not matched files:")
+            notMatched.each { scmFile ->
+                logger.warn(scmFile.name)
+            }
+            throw new Exception("Found files not matched by any wildcard, check project_settings.gradle")
+        }
+
         logger.lifecycle(" files to install: " + scriptInstall.scmFiles.size())
         logger.lifecycle(" files to uninstall: " + scriptUninstall.scmFiles.size())
         logger.lifecycle("--------------- diff finish ---------------")
 
         if (scriptInstall.scmFiles.isEmpty() && scriptUninstall.scmFiles.isEmpty()) {
-            throw new StopActionException('There is no data change found in project, please check,' +
-                    ' mb need do commit')
-        }
-
-        schemas.values().each { l ->
-            l.sort(FileUtils.schemaFileComparator)
+            throw new Exception('There is no data change found in project, please check, mb need do commit')
         }
     }
 

@@ -36,7 +36,11 @@ class DbReleasePlugin implements Plugin<Project> {
         } else {
             if (project.version == Project.DEFAULT_VERSION) {
                 def names = projectName.split("-")
-                project.version = "${names.last()}.${names[1].substring(2)}"
+                if (names.size() == 4) {
+                    project.version = "${names.last()}.${names[1].substring(2)}"
+                } else  {
+                    project.version = names.last()
+                }
             }
         }
     }

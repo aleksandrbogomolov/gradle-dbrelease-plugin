@@ -51,7 +51,7 @@ class DbTemplate {
         }
         scmFileTemplateFile = new File(project.projectDir.toString(), ext.scmFileTemplate)
         if (!scmFileTemplateFile.exists()) {
-            throw new StopActionException("Template not exists: " + scmFileTemplateFile.canonicalPath)
+            throw new Exception("Template not exists: " + scmFileTemplateFile.canonicalPath)
         }
 
         schemaBeforeTemplate = templateEngine.createTemplate(schemaBeforeTemplateFile)
@@ -88,6 +88,7 @@ class DbTemplate {
         binding["TMPL_CONFIG_LISTNODEBUGPACK"] = "0"
         binding["TMPL_CONFIG_TOTALBLOCKS"] = scmFiles.size() + 15
         binding["TMPL_INFORMATION_STATISTICS"] = getStat()
+        binding["TMPL_CONFIG_SYSTEMNAME"] = ext.systemName
         binding["TMPL_INFORMATION_CREATED"] = """
 prompt BranchCurrent: ${currBranch.url} -revision: ${currBranch.getRevisionName()}
 prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName()}
@@ -142,8 +143,9 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
             scriptSections[it.key as String] = ''
         }
         scmFiles.each { ScmFile scmFile ->
-            scmFile.scriptType = type
-            scriptSections[scmFile.scriptSection] += scmFileTemplate.make(scmFile.makeBinding()).toString()
+            if (scmFile.scriptType == type) {
+                scriptSections[scmFile.scriptSection] += scmFileTemplate.make(scmFile.makeBinding()).toString()
+            }
         }
         return scriptSections
     }

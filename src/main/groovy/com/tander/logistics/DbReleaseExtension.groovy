@@ -21,6 +21,7 @@ class DbReleaseExtension {
     String isMonopol
     boolean isRelease
     String spprDeliveryNumber
+    String systemName
 
     String isCheckReleaseNumberNeeded
     String isUpdateReleaseNumberNeeded
@@ -34,6 +35,7 @@ class DbReleaseExtension {
     LinkedHashMap sectionWildcards
     LinkedHashMap schemas
     HashMap settings
+    List<String> excludeFiles
 
     DbReleaseExtension(Project project) {
         this.project = project
@@ -74,11 +76,13 @@ class DbReleaseExtension {
 
         spprDeliveryNumber = getSpprDeliveryNumber()
 
-        isCheckReleaseNumberNeeded = project.findProperty("isCheckReleaseNumberNeeded") ?: '1'
+        isCheckReleaseNumberNeeded = getProjectProperty("isCheckReleaseNumberNeeded") ?: '1'
 
-        isUpdateReleaseNumberNeeded = project.findProperty("isUpdateReleaseNumberNeeded") ?: '1'
+        isUpdateReleaseNumberNeeded = getProjectProperty("isUpdateReleaseNumberNeeded") ?: '1'
 
-        isUpdateRevisionNumberNeeded = project.findProperty("isUpdateRevisionNumberNeeded") ?: '1'
+        isUpdateRevisionNumberNeeded = getProjectProperty("isUpdateRevisionNumberNeeded") ?: '1'
+
+        systemName = getProjectProperty("systemName")
 
         if (project.hasProperty("domainUser")) {
             user = project.property("domainUser")
@@ -93,6 +97,8 @@ class DbReleaseExtension {
         }
 
         sectionWildcards = project.sectionWildcards
+
+        excludeFiles = project.excludeFiles
     }
 
     /**
@@ -100,7 +106,7 @@ class DbReleaseExtension {
      * @return код задачи или {@code null}
      */
     String getSpprDeliveryNumber() {
-        return isRelease ? getProjectProperty('spprDeliveryNumber') : project.name.split('-')[1]
+        return getProjectProperty('spprDeliveryNumber') ? getProjectProperty('spprDeliveryNumber') : project.name.split('-')[1]
     }
 
     /**
