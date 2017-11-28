@@ -124,10 +124,9 @@ class SvnUtils {
      * @param currentVersion текущая версия
      * @return в зависимости от релиз это или патч возвращается номер предыдущего релиза или предыдущего патча
      */
-    String getPreviousVersionFromSet(String currentVersion) {
+    String getPreviousVersionFromSet(String currentVersion, String ebuildUrl) {
         String result = currentVersion
-        def repoUrl = "https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/tomcatsrv-dc-ora"
-        def repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(repoUrl))
+        def repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(ebuildUrl))
         repository.setAuthenticationManager(authManager)
         def regex = checkIsRelease(currentVersion) ? ~/\d*\.\d*\.0/ : ~/\d*\.\d*\.\d*/
         def dir = new ArrayList<SVNDirEntry>()

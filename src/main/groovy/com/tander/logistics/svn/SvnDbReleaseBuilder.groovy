@@ -66,7 +66,7 @@ class SvnDbReleaseBuilder extends DbRelease {
         prevBranch.version = project.settings.get('previousVersion')
         if (!prevBranch.version) {
             if (ext.isRelease) {
-                prevBranch.version = svnUtils.getPreviousVersionFromSet(currBranch.version)
+                prevBranch.version = svnUtils.getPreviousVersionFromSet(currBranch.version, ext.ebuildUrl)
             } else {
                 prevBranch.version = currBranch.version.take(currBranch.version.lastIndexOf("."))
             }
@@ -161,6 +161,10 @@ class SvnDbReleaseBuilder extends DbRelease {
         if (scriptInstall.scmFiles.isEmpty() && scriptUninstall.scmFiles.isEmpty()) {
             throw new Exception('There is no data change found in project, please check, mb need do commit')
         }
+
+        scriptInstall.sortScmFiles()
+
+        scriptUninstall.sortScmFiles()
     }
 
     void exportChangedFilesToDir() {

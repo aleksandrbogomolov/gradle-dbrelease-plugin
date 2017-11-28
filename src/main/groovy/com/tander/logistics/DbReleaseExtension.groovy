@@ -22,6 +22,7 @@ class DbReleaseExtension {
     boolean isRelease
     String spprDeliveryNumber
     String systemName
+    String ebuildUrl
 
     String isCheckReleaseNumberNeeded
     String isUpdateReleaseNumberNeeded
@@ -99,6 +100,8 @@ class DbReleaseExtension {
         sectionWildcards = project.sectionWildcards
 
         excludeFiles = project.excludeFiles
+
+        ebuildUrl = getProjectProperty("ebuildUrl")
     }
 
     /**

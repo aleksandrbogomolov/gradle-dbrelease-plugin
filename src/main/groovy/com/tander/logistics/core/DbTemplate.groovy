@@ -1,6 +1,7 @@
 package com.tander.logistics.core
 
 import com.tander.logistics.DbReleaseExtension
+import com.tander.logistics.util.FileUtils
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.Project
@@ -59,11 +60,15 @@ class DbTemplate {
         scmFileTemplate = templateEngine.createTemplate(scmFileTemplateFile)
     }
 
+    void sortScmFiles() {
+        scmFiles = scmFiles.entrySet().sort(false, scmFileComparatorWildcard).collectEntries() as LinkedHashMap<String, ScmFile>
+    }
+
     String getStat() {
         String stat = "prompt ...[INFO] Statistics\n"
         def cnt = scmFiles.countBy { it.value.wildcardsMatched }
         cnt.each { k, v ->
-            stat += "prompt ...[STAT][${k.padLeft(20)}] - $v\n"
+            stat += "prompt ...[STAT][${k.padLeft(22)}] - $v\n"
         }
         stat += "prompt ...[INFO] Statistics\n"
     }
@@ -86,7 +91,7 @@ class DbTemplate {
         binding["TMPL_CONFIG_UPDATEVERS"] = ext.isUpdateReleaseNumberNeeded
         binding["TMPL_CONFIG_UPDATEREVISION"] = ext.isUpdateRevisionNumberNeeded
         binding["TMPL_CONFIG_LISTNODEBUGPACK"] = "0"
-        binding["TMPL_CONFIG_TOTALBLOCKS"] = scmFiles.size() + 15
+        binding["TMPL_CONFIG_TOTALBLOCKS"] = scmFiles.size()
         binding["TMPL_INFORMATION_STATISTICS"] = getStat()
         binding["TMPL_CONFIG_SYSTEMNAME"] = ext.systemName
         binding["TMPL_INFORMATION_CREATED"] = """
@@ -98,6 +103,11 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
     }
 
     void assemblyScript() {
+
+        release.schemas.values().each {
+            it.sort(FileUtils.schemaFileComparator)
+        }
+
         release.schemas.each {
             if (!it.value.isEmpty()) {
                 schemas[getSchemaName(it.key as String)] = makeSchemaFileBinding(it.value)
@@ -148,5 +158,24 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
             }
         }
         return scriptSections
+    }
+
+    Comparator<Map.Entry<String, ScmFile>> scmFileComparatorWildcard = new Comparator<Map.Entry<String, ScmFile>>() {
+        @Override
+        int compare(Map.Entry<String, ScmFile> o1, Map.Entry<String, ScmFile> o2) {
+            if (o1.value.wildcardId > o2.value.wildcardId) {
+                return 1
+            }
+            if (o1.value.wildcardId < o2.value.wildcardId) {
+                return -1
+            }
+            if (o1.value.name > o2.value.name) {
+                return 1
+            }
+            if (o1.value.name < o2.value.name) {
+                return -1
+            }
+            return 0
+        }
     }
 }
