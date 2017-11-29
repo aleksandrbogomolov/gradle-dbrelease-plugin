@@ -111,7 +111,7 @@ class SvnDbReleaseBuilder extends DbRelease {
                     if (matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED && !scmFile.isUninstall) {
                         scriptInstall.scmFiles[scmFile.name] = scmFile
                     }
-                    if (matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED || scmFile.isUninstall) {
+                    if ((matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED && !scmFile.isUninstall) || (scmFile.isUninstall && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED)) {
                         scriptUninstall.scmFiles[scmFile.name] = scmFile
                     }
                     if (!matched) {
