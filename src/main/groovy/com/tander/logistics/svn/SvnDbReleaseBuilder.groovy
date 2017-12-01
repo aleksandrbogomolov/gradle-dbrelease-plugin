@@ -2,7 +2,6 @@ package com.tander.logistics.svn
 
 import com.tander.logistics.core.DbRelease
 import com.tander.logistics.core.ScmFile
-import com.tander.logistics.core.ScriptType
 import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Project
 import org.tmatesoft.svn.core.SVNCancelException
@@ -111,19 +110,15 @@ class SvnDbReleaseBuilder extends DbRelease {
                                 .getModificationType().toString())
                     }
 
-                    if (matched
-                            && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED
-                            && !scmFile.isUninstall) {
-                        scriptInstall.scmFiles[scmFile.name] = scmFile
-                        scmFile.scriptType = ScriptType.stInstall
-                    }
-                    if (matched
-                            && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED
-                            || scmFile.isUninstall) {
-                        scriptUninstall.scmFiles[scmFile.name] = scmFile
-                        scmFile.scriptType = ScriptType.stUninstall
-                    }
-                    if (!matched) {
+                    if (matched) {
+                        if (svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED && !scmFile.isUninstall) {
+                            scriptInstall.scmFiles[scmFile.name] = scmFile
+                        }
+                        if ((svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED && !scmFile.isUninstall)
+                                || (scmFile.isUninstall && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED)) {
+                            scriptUninstall.scmFiles[scmFile.name] = scmFile
+                        }
+                    } else {
                         boolean isNotExclude = true
                         for (exclude in ext.excludeFiles) {
                             if (FilenameUtils.wildcardMatch(scmFile.name, exclude)) {
@@ -161,10 +156,6 @@ class SvnDbReleaseBuilder extends DbRelease {
         if (scriptInstall.scmFiles.isEmpty() && scriptUninstall.scmFiles.isEmpty()) {
             throw new Exception('There is no data change found in project, please check, mb need do commit')
         }
-
-        scriptInstall.sortScmFiles()
-
-        scriptUninstall.sortScmFiles()
     }
 
     void exportChangedFilesToDir() {

@@ -60,10 +60,6 @@ class DbTemplate {
         scmFileTemplate = templateEngine.createTemplate(scmFileTemplateFile)
     }
 
-    void sortScmFiles() {
-        scmFiles = scmFiles.entrySet().sort(false, scmFileComparatorWildcard).collectEntries() as LinkedHashMap<String, ScmFile>
-    }
-
     String getStat() {
         String stat = "prompt ...[INFO] Statistics\n"
         def cnt = scmFiles.countBy { it.value.wildcardsMatched }
@@ -153,29 +149,11 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
             scriptSections[it.key as String] = ''
         }
         scmFiles.each { ScmFile scmFile ->
-            if (scmFile.scriptType == type) {
+            scmFile.scriptType = type
+            if (this.scmFiles.keySet().contains(scmFile.name)) {
                 scriptSections[scmFile.scriptSection] += scmFileTemplate.make(scmFile.makeBinding()).toString()
             }
         }
         return scriptSections
-    }
-
-    Comparator<Map.Entry<String, ScmFile>> scmFileComparatorWildcard = new Comparator<Map.Entry<String, ScmFile>>() {
-        @Override
-        int compare(Map.Entry<String, ScmFile> o1, Map.Entry<String, ScmFile> o2) {
-            if (o1.value.wildcardId > o2.value.wildcardId) {
-                return 1
-            }
-            if (o1.value.wildcardId < o2.value.wildcardId) {
-                return -1
-            }
-            if (o1.value.name > o2.value.name) {
-                return 1
-            }
-            if (o1.value.name < o2.value.name) {
-                return -1
-            }
-            return 0
-        }
     }
 }

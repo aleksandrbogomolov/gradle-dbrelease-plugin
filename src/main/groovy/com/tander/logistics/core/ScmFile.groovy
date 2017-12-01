@@ -90,7 +90,7 @@ class ScmFile {
         final StringBuilder sb = new StringBuilder("ScmFile{")
         sb.append("name='").append(name).append('\'')
         sb.append("section='").append(scriptSection).append('\'')
-        sb.append(", url='").append(url).append('\'')
+        sb.append(", scriptType='").append(scriptType).append('\'')
         sb.append(", date=").append(date)
         sb.append('}')
         return sb.toString()
