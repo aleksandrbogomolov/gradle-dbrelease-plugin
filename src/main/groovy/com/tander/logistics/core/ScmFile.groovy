@@ -11,9 +11,8 @@ import org.gradle.api.logging.Logging
  */
 class ScmFile {
 
-    Logger logger
-
     ScriptType scriptType
+    String scriptSection
     String name
     String url
     String revision
@@ -23,7 +22,6 @@ class ScmFile {
     String schema
     Date date
     int wildcardId
-    String scriptSection
     int wildcardMatchCount = 0
     String wildcardsMatched = ""
     boolean isUninstall
@@ -42,7 +40,6 @@ class ScmFile {
 
     ScmFile(String name) {
         this.name = name
-        logger = Logging.getLogger(this.class)
     }
 
     boolean checkWildcards(Map<String, List<ScmFile>> schemas, Map wildcards) {
@@ -86,13 +83,13 @@ class ScmFile {
     }
 
     @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("ScmFile{")
+    String toString() {
+        final sb = new StringBuilder("ScmFile{")
         sb.append("name='").append(name).append('\'')
-        sb.append("section='").append(scriptSection).append('\'')
+        sb.append(", section='").append(scriptSection).append('\'')
         sb.append(", scriptType='").append(scriptType).append('\'')
         sb.append(", date=").append(date)
         sb.append('}')
-        return sb.toString()
+        sb.toString()
     }
 }

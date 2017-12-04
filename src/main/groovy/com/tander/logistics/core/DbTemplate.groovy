@@ -138,6 +138,11 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         return binding
     }
 
+    /**
+     * Очищает имя схемы от использованных для шаблона знаков
+     * @param schemaWildcard имя схемы из project.ext.schemas словаря
+     * @return очищенное от посторонних символов имя схемы в верхнем регистре
+     */
     String getSchemaName(String schemaWildcard) {
         String result = schemaWildcard.replaceAll(~/\W/, '')
         return result.toUpperCase()

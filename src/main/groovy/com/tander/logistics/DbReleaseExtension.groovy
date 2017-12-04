@@ -53,17 +53,13 @@ class DbReleaseExtension {
             currUrl = project.property("currURL")
         }
 
-        if (project.hasProperty("prevUrl")) {
-            prevUrl = project.property("prevUrl")
-        }
-
         if (project.hasProperty("currRevision")) {
             currRevision = project.property("currRevision")
         }
 
-        if (project.hasProperty("prevRevision")) {
-            prevRevision = project.property("prevRevision")
-        }
+        prevUrl = getProjectProperty("prevUrl")
+
+        prevRevision = getProjectProperty("prevRevision")
 
         isMonopol = getProjectProperty('isMonopol') ?: '1'
 
@@ -105,7 +101,7 @@ class DbReleaseExtension {
     }
 
     /**
-     * Ищет задачу СППР связанную с проектом. Если релиз ищет в свойствах проекта иначе в имени проекта
+     * Ищет задачу СППР связанную с проектом. Если релиз, ищет в свойствах проекта иначе в имени проекта
      * @return код задачи или {@code null}
      */
     String getSpprDeliveryNumber() {
