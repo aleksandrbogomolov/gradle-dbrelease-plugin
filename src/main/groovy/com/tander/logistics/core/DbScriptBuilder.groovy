@@ -32,8 +32,8 @@ class DbScriptBuilder {
         }
     }
 
-    def makeScript(String scriptFilePath, Map binding) {
-        def installSqlFile = new File(scriptFilePath)
-        installSqlFile.write(template.make(binding).toString(), 'Cp1251')
+    def makeScript(String scriptFilePath, Map binding, String encoding) {
+        def file = new File(scriptFilePath)
+        file.write(template.make(binding).toString(), encoding)
     }
 }

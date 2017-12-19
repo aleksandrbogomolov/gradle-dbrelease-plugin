@@ -1,5 +1,5 @@
 group 'com.tander.logistics'
-version '0.3.3'
+version '0.3.4'
 
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
@@ -41,18 +41,5 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
         }
-    }
-}
-
-test {
-    if (project.hasProperty('domainUser')) {
-        systemProperty 'domainUser', project.getProperty('domainUser')
-    }
-    if (project.hasProperty('domainPassword')) {
-        systemProperty 'domainPassword', project.getProperty('domainPassword')
-    }
-
-    useJUnit {
-        excludeCategories 'com.tander.logistics.categories.Perfomance'
     }
 }

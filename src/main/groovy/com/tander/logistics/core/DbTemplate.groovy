@@ -23,6 +23,7 @@ class DbTemplate {
 
     LinkedHashMap<String, LinkedHashMap<String, String>> schemas = []
     LinkedHashMap<String, ScmFile> scmFiles = []
+    LinkedHashMap<String, String> scriptSections = []
 
     ScmBranch currBranch
     ScmBranch prevBranch
@@ -86,6 +87,7 @@ class DbTemplate {
         binding["TMPL_CONFIG_CHECKREVISION"] = ""
         binding["TMPL_CONFIG_UPDATEVERS"] = ext.isUpdateReleaseNumberNeeded
         binding["TMPL_CONFIG_UPDATEREVISION"] = ext.isUpdateRevisionNumberNeeded
+        binding["TMPL_CONFIG_RECOMPILING"] = "${scriptSections.get("TMPL_SCRIPT_AFTER_INSTALL").toString().isEmpty() ? "0" : "1"}"
         binding["TMPL_CONFIG_LISTNODEBUGPACK"] = "0"
         binding["TMPL_CONFIG_TOTALBLOCKS"] = scmFiles.size()
         binding["TMPL_INFORMATION_STATISTICS"] = getStat()
@@ -129,7 +131,7 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         }
 
         DbScriptBuilder installTemplate = new DbScriptBuilder(new File(project.projectDir, ext.dbReleaseTemplate))
-        installTemplate.makeScript(release.releaseDir.path + "/${type.dirName}.sql", binding)
+        installTemplate.makeScript(release.releaseDir.path + "/${type.dirName}.sql", binding, "cp1251")
     }
 
     LinkedHashMap makeSchemaBinding(String schema) {
@@ -149,7 +151,7 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
     }
 
     LinkedHashMap makeSchemaFileBinding(List scmFiles) {
-        LinkedHashMap<String, String> scriptSections = []
+        scriptSections.clear()
         ext.sectionWildcards.each {
             scriptSections[it.key as String] = ''
         }
