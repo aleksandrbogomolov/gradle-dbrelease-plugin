@@ -1,5 +1,6 @@
 package com.tander.logistics.svn
 
+import com.tander.logistics.DbReleaseExtension
 import org.tmatesoft.svn.core.*
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationProvider
@@ -19,10 +20,10 @@ class SvnUtils {
     SVNClientManager clientManager
     SVNRevision firstRevision
 
-    SvnUtils(String username, char[] password) {
+    SvnUtils(DbReleaseExtension ext) {
         DAVRepositoryFactory.setup()
-        ISVNAuthenticationProvider provider = new SvnAuthProvider()
-        authManager = SVNWCUtil.createDefaultAuthenticationManager(username, password)
+        ISVNAuthenticationProvider provider = new SvnAuthProvider(ext)
+        authManager = SVNWCUtil.createDefaultAuthenticationManager(ext.user, ext.password.toCharArray())
         authManager.setAuthenticationProvider(provider)
         clientManager = SVNClientManager.newInstance(SVNWCUtil.createDefaultOptions(true), authManager)
         firstRevision = SVNRevision.create(1)

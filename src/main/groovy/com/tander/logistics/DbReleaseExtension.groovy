@@ -49,13 +49,13 @@ class DbReleaseExtension {
 
         schemas = project.schemas
 
-        if (project.hasProperty("currURL")) {
-            currUrl = project.property("currURL")
-        }
+        sectionWildcards = project.sectionWildcards
 
-        if (project.hasProperty("currRevision")) {
-            currRevision = project.property("currRevision")
-        }
+        excludeFiles = project.excludeFiles
+
+        currUrl = getProjectProperty("currURL")
+
+        currRevision = getProjectProperty("currRevision")
 
         prevUrl = getProjectProperty("prevUrl")
 
@@ -80,22 +80,6 @@ class DbReleaseExtension {
         isUpdateRevisionNumberNeeded = getProjectProperty("isUpdateRevisionNumberNeeded") ?: '1'
 
         systemName = getProjectProperty("systemName")
-
-        if (project.hasProperty("domainUser")) {
-            user = project.property("domainUser")
-        }
-
-        if (project.hasProperty("domainPassword")) {
-            password = project.property("domainPassword")
-        }
-
-        if (!password) {
-            password = ''
-        }
-
-        sectionWildcards = project.sectionWildcards
-
-        excludeFiles = project.excludeFiles
 
         ebuildUrl = getProjectProperty("ebuildUrl")
     }

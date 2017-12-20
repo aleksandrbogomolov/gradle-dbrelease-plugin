@@ -36,7 +36,7 @@ class DbReleaseEbuildTask extends DefaultTask {
         }
     }
 
-    LinkedHashMap makeTemplateBinding() {
+    private LinkedHashMap makeTemplateBinding() {
         LinkedHashMap binding = []
         binding.clear()
         binding["ebuildName"] = "${ext.getProjectProperty('ebuildName')}"

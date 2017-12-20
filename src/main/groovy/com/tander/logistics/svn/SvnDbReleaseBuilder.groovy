@@ -23,10 +23,10 @@ class SvnDbReleaseBuilder extends DbRelease {
     SvnDbReleaseBuilder(Project project) {
         super(project)
 
-        this.svnUtils = new SvnUtils(ext.user, ext.password.toCharArray())
+        this.svnUtils = new SvnUtils(ext)
 
-        currBranch = new SvnBranch(svnUtils, null, null, null)
-        prevBranch = new SvnBranch(svnUtils, null, null, null)
+        currBranch = new SvnBranch(svnUtils)
+        prevBranch = new SvnBranch(svnUtils)
 
         scriptInstall.currBranch = currBranch
         scriptInstall.prevBranch = prevBranch
