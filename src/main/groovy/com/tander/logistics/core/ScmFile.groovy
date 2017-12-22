@@ -42,11 +42,11 @@ class ScmFile {
         this.name = name
     }
 
-    boolean checkWildcards(Map<String, List<ScmFile>> schemas, Map wildcards) {
-        for (schema in schemas.keySet()) {
+    boolean checkWildcards(Map<String, List<ScmFile>> schemaWildcards, Map sectionWildcards) {
+        for (schema in schemaWildcards.keySet()) {
             if (FilenameUtils.wildcardMatch(name, schema)) {
                 this.schema = schema
-                for (wildcard in wildcards) {
+                for (wildcard in sectionWildcards) {
                     List values = wildcard.value as List<String>
                     for (int i = 0; i < values.size(); i++) {
                         String w = values.get(i)
@@ -55,7 +55,7 @@ class ScmFile {
                             wildcardMatchCount += 1
                             wildcardsMatched += w + ', '
                             scriptSection = wildcard.key
-                            schemas[schema].add(this)
+                            schemaWildcards[schema].add(this)
                         }
                         if (wildcardMatchCount == 1) {
                             break

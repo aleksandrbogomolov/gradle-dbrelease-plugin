@@ -19,16 +19,16 @@ abstract class DbRelease {
 
     String projectDir
 
-    LinkedHashMap<String, ArrayList<ScmFile>> schemas
-    LinkedHashMap wildcards
+    LinkedHashMap<String, ArrayList<ScmFile>> schemaWildcards
+    LinkedHashMap sectionWildcards
     DbTemplate scriptInstall
     DbTemplate scriptUninstall
 
     DbRelease(Project project) {
         this.project = project
         this.ext = project.extensions.findByName('dbrelease') as DbReleaseExtension
-        this.schemas = ext.schemas
-        this.wildcards = ext.sectionWildcards
+        this.schemaWildcards = ext.schemaWildcards
+        this.sectionWildcards = ext.sectionWildcards
 
         logger = Logging.getLogger(this.class)
         projectDir = project.projectDir

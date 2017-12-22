@@ -34,7 +34,7 @@ class DbReleaseExtension {
     String scmFileTemplate
 
     LinkedHashMap sectionWildcards
-    LinkedHashMap schemas
+    LinkedHashMap schemaWildcards
     HashMap settings
     List<String> excludeFiles
 
@@ -47,9 +47,9 @@ class DbReleaseExtension {
 
         settings = project.settings
 
-        schemas = project.schemas
-
         sectionWildcards = project.sectionWildcards
+
+        schemaWildcards = project.schemaWildcards
 
         excludeFiles = project.excludeFiles
 

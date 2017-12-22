@@ -104,7 +104,7 @@ class SvnDbReleaseBuilder extends DbRelease {
                     if (svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
                                                                 SVNStatusType.STATUS_DELETED,
                                                                 SVNStatusType.STATUS_ADDED]) {
-                        matched = scmFile.checkWildcards(schemas, wildcards)
+                        matched = scmFile.checkWildcards(schemaWildcards, sectionWildcards)
                     } else {
                         logger.warn(scmFile.name + " Uncorrected file status : " + svnDiffStatus
                                 .getModificationType().toString())
