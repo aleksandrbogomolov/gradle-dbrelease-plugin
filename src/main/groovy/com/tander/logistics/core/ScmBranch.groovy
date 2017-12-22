@@ -8,8 +8,7 @@ import org.gradle.api.logging.Logging
  */
 abstract class ScmBranch implements IScmBranch {
 
-    protected Logger logger
-
+    Logger logger
     String url
     String version
 

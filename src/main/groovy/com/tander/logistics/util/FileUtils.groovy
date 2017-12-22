@@ -13,15 +13,6 @@ import java.util.regex.Pattern
  */
 class FileUtils {
 
-    static void CopyFile(String filePath, String sourceDirPath, String targetDirPath) {
-        def sourceFile = new File(sourceDirPath + filePath)
-        if (sourceFile.exists()) {
-            def targetDir = new File(FilenameUtils.getFullPath(FilenameUtils.normalize(targetDirPath + filePath)))
-            targetDir.mkdirs()
-            new File(targetDirPath + filePath) << sourceFile.bytes
-        }
-    }
-
     /**
      * Проверим подходит ли поданая строка под маску
      * @param str строка для проверки

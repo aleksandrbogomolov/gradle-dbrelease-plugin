@@ -21,6 +21,8 @@ class DbReleaseExtension {
     String isMonopol
     boolean isRelease
     String spprDeliveryNumber
+    String systemName
+    String ebuildUrl
 
     String isCheckReleaseNumberNeeded
     String isUpdateReleaseNumberNeeded
@@ -32,8 +34,9 @@ class DbReleaseExtension {
     String scmFileTemplate
 
     LinkedHashMap sectionWildcards
-    LinkedHashMap schemas
+    LinkedHashMap schemaWildcards
     HashMap settings
+    List<String> excludeFiles
 
     DbReleaseExtension(Project project) {
         this.project = project
@@ -44,23 +47,19 @@ class DbReleaseExtension {
 
         settings = project.settings
 
-        schemas = project.schemas
+        sectionWildcards = project.sectionWildcards
 
-        if (project.hasProperty("currURL")) {
-            currUrl = project.property("currURL")
-        }
+        schemaWildcards = project.schemaWildcards
 
-        if (project.hasProperty("prevUrl")) {
-            prevUrl = project.property("prevUrl")
-        }
+        excludeFiles = project.excludeFiles
 
-        if (project.hasProperty("currRevision")) {
-            currRevision = project.property("currRevision")
-        }
+        currUrl = getProjectProperty("currURL")
 
-        if (project.hasProperty("prevRevision")) {
-            prevRevision = project.property("prevRevision")
-        }
+        currRevision = getProjectProperty("currRevision")
+
+        prevUrl = getProjectProperty("prevUrl")
+
+        prevRevision = getProjectProperty("prevRevision")
 
         isMonopol = getProjectProperty('isMonopol') ?: '1'
 
@@ -74,33 +73,23 @@ class DbReleaseExtension {
 
         spprDeliveryNumber = getSpprDeliveryNumber()
 
-        isCheckReleaseNumberNeeded = project.findProperty("isCheckReleaseNumberNeeded") ?: '1'
+        isCheckReleaseNumberNeeded = getProjectProperty("isCheckReleaseNumberNeeded") ?: '1'
 
-        isUpdateReleaseNumberNeeded = project.findProperty("isUpdateReleaseNumberNeeded") ?: '1'
+        isUpdateReleaseNumberNeeded = getProjectProperty("isUpdateReleaseNumberNeeded") ?: '1'
 
-        isUpdateRevisionNumberNeeded = project.findProperty("isUpdateRevisionNumberNeeded") ?: '1'
+        isUpdateRevisionNumberNeeded = getProjectProperty("isUpdateRevisionNumberNeeded") ?: '1'
 
-        if (project.hasProperty("domainUser")) {
-            user = project.property("domainUser")
-        }
+        systemName = getProjectProperty("systemName")
 
-        if (project.hasProperty("domainPassword")) {
-            password = project.property("domainPassword")
-        }
-
-        if (!password) {
-            password = ''
-        }
-
-        sectionWildcards = project.sectionWildcards
+        ebuildUrl = getProjectProperty("ebuildUrl")
     }
 
     /**
-     * Ищет задачу СППР связанную с проектом. Если релиз ищет в свойствах проекта иначе в имени проекта
+     * Ищет задачу СППР связанную с проектом. Если релиз, ищет в свойствах проекта иначе в имени проекта
      * @return код задачи или {@code null}
      */
     String getSpprDeliveryNumber() {
-        return isRelease ? getProjectProperty('spprDeliveryNumber') : project.name.split('-')[1]
+        return getProjectProperty('spprDeliveryNumber') ? getProjectProperty('spprDeliveryNumber') : project.name.split('-')[1]
     }
 
     /**

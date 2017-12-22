@@ -20,7 +20,7 @@ class SvnBranch extends ScmBranch implements IScmBranch {
 
     SVNRevision revision
 
-    SvnBranch(SvnUtils svnUtils, String folderPath, String scmUrl, String revision) {
+    SvnBranch(SvnUtils svnUtils) {
         this.svnUtils = svnUtils
     }
 

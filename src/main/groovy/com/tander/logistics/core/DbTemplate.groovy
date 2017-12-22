@@ -1,6 +1,7 @@
 package com.tander.logistics.core
 
 import com.tander.logistics.DbReleaseExtension
+import com.tander.logistics.util.FileUtils
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.Project
@@ -22,6 +23,7 @@ class DbTemplate {
 
     LinkedHashMap<String, LinkedHashMap<String, String>> schemas = []
     LinkedHashMap<String, ScmFile> scmFiles = []
+    LinkedHashMap<String, String> scriptSections = []
 
     ScmBranch currBranch
     ScmBranch prevBranch
@@ -51,7 +53,7 @@ class DbTemplate {
         }
         scmFileTemplateFile = new File(project.projectDir.toString(), ext.scmFileTemplate)
         if (!scmFileTemplateFile.exists()) {
-            throw new StopActionException("Template not exists: " + scmFileTemplateFile.canonicalPath)
+            throw new Exception("Template not exists: " + scmFileTemplateFile.canonicalPath)
         }
 
         schemaBeforeTemplate = templateEngine.createTemplate(schemaBeforeTemplateFile)
@@ -63,7 +65,7 @@ class DbTemplate {
         String stat = "prompt ...[INFO] Statistics\n"
         def cnt = scmFiles.countBy { it.value.wildcardsMatched }
         cnt.each { k, v ->
-            stat += "prompt ...[STAT][${k.padLeft(20)}] - $v\n"
+            stat += "prompt ...[STAT][${k.padLeft(22)}] - $v\n"
         }
         stat += "prompt ...[INFO] Statistics\n"
     }
@@ -85,9 +87,11 @@ class DbTemplate {
         binding["TMPL_CONFIG_CHECKREVISION"] = ""
         binding["TMPL_CONFIG_UPDATEVERS"] = ext.isUpdateReleaseNumberNeeded
         binding["TMPL_CONFIG_UPDATEREVISION"] = ext.isUpdateRevisionNumberNeeded
+        binding["TMPL_CONFIG_RECOMPILING"] = "${scriptSections.get("TMPL_SCRIPT_AFTER_INSTALL").toString().isEmpty() ? "0" : "1"}"
         binding["TMPL_CONFIG_LISTNODEBUGPACK"] = "0"
-        binding["TMPL_CONFIG_TOTALBLOCKS"] = scmFiles.size() + 15
+        binding["TMPL_CONFIG_TOTALBLOCKS"] = 'xxxx'
         binding["TMPL_INFORMATION_STATISTICS"] = getStat()
+        binding["TMPL_CONFIG_SYSTEMNAME"] = ext.systemName
         binding["TMPL_INFORMATION_CREATED"] = """
 prompt BranchCurrent: ${currBranch.url} -revision: ${currBranch.getRevisionName()}
 prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName()}
@@ -96,8 +100,17 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         return binding
     }
 
+    /**
+     * В данном методе происходит разбиение файлов по секциям генерация шаблонов для файлов
+     * и сборка всех шаблонов в один файл
+     */
     void assemblyScript() {
-        release.schemas.each {
+
+        release.schemaWildcards.values().each {
+            it.sort(FileUtils.schemaFileComparator)
+        }
+
+        release.schemaWildcards.each {
             if (!it.value.isEmpty()) {
                 schemas[getSchemaName(it.key as String)] = makeSchemaFileBinding(it.value)
             }
@@ -105,46 +118,85 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
 
         def binding = makeTemplateHeadBinding()
 
-        schemas.each { k, v ->
-            if (binding.get(v.keySet()[0])) {
-                binding[v.keySet()[0]] += schemaBeforeTemplate.make(makeSchemaBinding(k)).toString()
+        schemas.each { key, value ->
+            if (binding.get(value.keySet()[0])) {
+                binding[value.keySet()[0]] += schemaBeforeTemplate.make(makeSchemaBinding(key)).toString()
             } else {
-                binding[v.keySet()[0]] = schemaBeforeTemplate.make(makeSchemaBinding(k)).toString()
+                binding[value.keySet()[0]] = schemaBeforeTemplate.make(makeSchemaBinding(key)).toString()
             }
-            v.each {
-                if (binding.get(it.key)) {
-                    binding[it.key] += it.value
+            value.each { k, v ->
+                if (binding.get(k)) {
+                    binding[k] += v
                 } else {
-                    binding[it.key] = it.value
+                    binding[k] = v
                 }
-                binding[it.key] += schemaAfterTemplate.make(makeSchemaBinding(k)).toString()
+                binding[k] += schemaAfterTemplate.make(makeSchemaBinding(key)).toString()
             }
         }
 
         DbScriptBuilder installTemplate = new DbScriptBuilder(new File(project.projectDir, ext.dbReleaseTemplate))
-        installTemplate.makeScript(release.releaseDir.path + "/${type.dirName}.sql", binding)
+        def scriptFullName = release.releaseDir.path + "/${type.dirName}.sql"
+        installTemplate.makeScript(scriptFullName, binding, "cp1251")
+
+        setTotalBlocksCount(scriptFullName)
     }
 
-    LinkedHashMap makeSchemaBinding(String schema) {
+    /**
+     * Заполняет параметры для schema.before и schema.after шаблонов
+     * @param schema имя схемы
+     * @return заполненный параметрами словарь
+     */
+    private LinkedHashMap makeSchemaBinding(String schema) {
         LinkedHashMap binding = []
         binding["SCHEMA_NAME"] = schema.toUpperCase()
         return binding
     }
 
-    String getSchemaName(String schemaWildcard) {
+    /**
+     * Очищает имя схемы от использованных для шаблона знаков
+     * @param schemaWildcard имя схемы из schemaWildcards словаря
+     * @return очищенное от посторонних символов имя схемы в верхнем регистре
+     */
+    private String getSchemaName(String schemaWildcard) {
         String result = schemaWildcard.replaceAll(~/\W/, '')
         return result.toUpperCase()
     }
 
-    LinkedHashMap makeSchemaFileBinding(List scmFiles) {
-        LinkedHashMap<String, String> scriptSections = []
-        ext.sectionWildcards.each {
-            scriptSections[it.key as String] = ''
+    /**
+     * Для каждой схемы раскидывает файлы по секциям (ключам из sectionWildcards)
+     * @param schemaFiles список файлов для схемы
+     * @return словарь секция -> список имен файлов
+     */
+    LinkedHashMap makeSchemaFileBinding(List schemaFiles) {
+        Map<String, String> schemaSections = new LinkedHashMap<>()
+        ext.sectionWildcards.each { k, v ->
+            schemaSections[k as String] = ''
         }
-        scmFiles.each { ScmFile scmFile ->
+        schemaFiles.each { ScmFile scmFile ->
             scmFile.scriptType = type
-            scriptSections[scmFile.scriptSection] += scmFileTemplate.make(scmFile.makeBinding()).toString()
+            if (this.scmFiles.keySet().contains(scmFile.name)) {
+                schemaSections[scmFile.scriptSection] += scmFileTemplate.make(scmFile.makeBinding()).toString()
+            }
         }
-        return scriptSections
+        return schemaSections
+    }
+
+    void setTotalBlocksCount(String scriptFullName) {
+        int blockCount = 0
+        def script = new File(scriptFullName)
+        script.eachLine {
+            if (it.contains('TMPL.INSTALL.COUNTBLOCK')) blockCount += 1
+        }
+        println(blockCount)
+        String text = ''
+        script.eachLine {
+            if (it.contains('xxxx')) {
+                String changed = it.replace('xxxx', String.valueOf(blockCount))
+                text += "$changed\n"
+            } else {
+                text += "$it\n"
+            }
+        }
+        new File(scriptFullName).write(text.toString(), 'UTF-8')
     }
 }

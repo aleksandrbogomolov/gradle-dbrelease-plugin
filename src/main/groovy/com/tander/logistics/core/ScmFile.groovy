@@ -11,9 +11,8 @@ import org.gradle.api.logging.Logging
  */
 class ScmFile {
 
-    Logger logger
-
     ScriptType scriptType
+    String scriptSection
     String name
     String url
     String revision
@@ -23,7 +22,6 @@ class ScmFile {
     String schema
     Date date
     int wildcardId
-    String scriptSection
     int wildcardMatchCount = 0
     String wildcardsMatched = ""
     boolean isUninstall
@@ -42,14 +40,13 @@ class ScmFile {
 
     ScmFile(String name) {
         this.name = name
-        logger = Logging.getLogger(this.class)
     }
 
-    boolean checkWildcards(Map<String, List<ScmFile>> schemas, Map wildcards) {
-        for (s in schemas.keySet()) {
-            if (FilenameUtils.wildcardMatch(name, s)) {
-                schema = s
-                for (wildcard in wildcards) {
+    boolean checkWildcards(Map<String, List<ScmFile>> schemaWildcards, Map sectionWildcards) {
+        for (schema in schemaWildcards.keySet()) {
+            if (FilenameUtils.wildcardMatch(name, schema)) {
+                this.schema = schema
+                for (wildcard in sectionWildcards) {
                     List values = wildcard.value as List<String>
                     for (int i = 0; i < values.size(); i++) {
                         String w = values.get(i)
@@ -58,7 +55,7 @@ class ScmFile {
                             wildcardMatchCount += 1
                             wildcardsMatched += w + ', '
                             scriptSection = wildcard.key
-                            schemas[s].add(this)
+                            schemaWildcards[schema].add(this)
                         }
                         if (wildcardMatchCount == 1) {
                             break
@@ -67,9 +64,6 @@ class ScmFile {
                 }
                 break
             }
-        }
-        if (wildcardMatchCount == 0) {
-            logger.warn("$name - file not matched by any wildcard")
         }
         return wildcardMatchCount == 1
     }
@@ -86,5 +80,16 @@ class ScmFile {
         binding["type"] = scriptType.dirName
         binding["name"] = name
         return binding
+    }
+
+    @Override
+    String toString() {
+        final sb = new StringBuilder("ScmFile{")
+        sb.append("name='").append(name).append('\'')
+        sb.append(", section='").append(scriptSection).append('\'')
+        sb.append(", scriptType='").append(scriptType).append('\'')
+        sb.append(", date=").append(date)
+        sb.append('}')
+        sb.toString()
     }
 }
