@@ -119,12 +119,12 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         def binding = makeTemplateHeadBinding()
 
         schemas.each { key, value ->
-            if (binding.get(value.keySet()[0])) {
-                binding[value.keySet()[0]] += schemaBeforeTemplate.make(makeSchemaBinding(key)).toString()
-            } else {
-                binding[value.keySet()[0]] = schemaBeforeTemplate.make(makeSchemaBinding(key)).toString()
-            }
             value.each { k, v ->
+                if (binding[k]) {
+                    binding[k] += schemaBeforeTemplate.make(makeSchemaBinding(key)).toString()
+                } else {
+                    binding[k] = schemaBeforeTemplate.make(makeSchemaBinding(key)).toString()
+                }
                 if (binding.get(k)) {
                     binding[k] += v
                 } else {
@@ -187,7 +187,6 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         script.eachLine {
             if (it.contains('TMPL.INSTALL.COUNTBLOCK')) blockCount += 1
         }
-        println(blockCount)
         String text = ''
         script.eachLine {
             if (it.contains('xxxx')) {
