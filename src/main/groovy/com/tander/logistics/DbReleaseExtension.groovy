@@ -42,21 +42,13 @@ class DbReleaseExtension {
 
         settings = project.settings
 
-        if (project.hasProperty("currURL")) {
-            currUrl = project.property("currURL")
-        }
+        currUrl = getProjectProperty("currURL")
 
-        if (project.hasProperty("prevUrl")) {
-            prevUrl = project.property("prevUrl")
-        }
+        prevUrl = getProjectProperty("prevUrl")
 
-        if (project.hasProperty("currRevision")) {
-            currRevision = project.property("currRevision")
-        }
+        currRevision = getProjectProperty("currRevision")
 
-        if (project.hasProperty("prevRevision")) {
-            prevRevision = project.property("prevRevision")
-        }
+        prevRevision = getProjectProperty("prevRevision")
 
         isMonopol = getProjectProperty('isMonopol') ?: '1'
 

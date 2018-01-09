@@ -100,21 +100,26 @@ class SvnDbReleaseBuilder extends DbRelease {
                     if (scmFile.url.contains('uninstall')) {
                         scmFile.isUninstall = true
                     }
-                    if (svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
-                                                                SVNStatusType.STATUS_DELETED,
-                                                                SVNStatusType.STATUS_ADDED]) {
+                    def inStatus = svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
+                                                                           SVNStatusType.STATUS_DELETED,
+                                                                           SVNStatusType.STATUS_ADDED]
+                    if (inStatus) {
                         matched = scmFile.checkWildcards(wildcards)
                     } else {
                         logger.warn(scmFile.name + " Uncorrected file status : " + svnDiffStatus.getModificationType().toString())
                     }
 
-                    if (matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED && !scmFile.isUninstall) {
+                    if (matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED && !scmFile.isUninstall) {
                         scriptInstall.scmFiles[scmFile.name] = scmFile
                     }
-                    if ((matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED && !scmFile.isUninstall) || (scmFile.isUninstall && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED)) {
+                    if (matched && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED && !scmFile.isUninstall) {
+                        scriptUninstall.scmFiles[scmFile.name] = scmFile
+                        scmFile.url = "${prevBranch.url}/${svnDiffStatus.path}"
+                    }
+                    if (scmFile.isUninstall && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED) {
                         scriptUninstall.scmFiles[scmFile.name] = scmFile
                     }
-                    if (!matched) {
+                    if (!matched && inStatus) {
                         boolean isNotExclude = true
                         for (exclude in ext.excludeFiles) {
                             if (FilenameUtils.wildcardMatch(scmFile.name, exclude)) {
@@ -130,10 +135,10 @@ class SvnDbReleaseBuilder extends DbRelease {
             }
         }
         logger.lifecycle("--------------- diff start ---------------")
-        svnUtils.doDiffStatus(prevBranch.getUrl(),
-                prevBranch.revision,
-                currBranch.getUrl(),
+        svnUtils.doDiffStatus(currBranch.getUrl(),
                 currBranch.revision,
+                prevBranch.getUrl(),
+                prevBranch.revision,
                 diffStatusHandler)
 
         if (!notMatched.isEmpty()) {
