@@ -111,7 +111,7 @@ class SvnDbReleaseBuilder extends DbRelease {
                                 .getModificationType().toString())
                     }
 
-                    if (matched) {
+                    if (matched && checkIfExcluded(scmFile)) {
                         if (svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED && !scmFile.isUninstall) {
                             scriptInstall.scmFiles[scmFile.name] = scmFile
                         }
@@ -123,19 +123,28 @@ class SvnDbReleaseBuilder extends DbRelease {
                             scriptUninstall.scmFiles[scmFile.name] = scmFile
                         }
                     } else if (!matched && inStatus) {
-                        boolean isNotExclude = true
-                        for (exclude in ext.excludeFiles) {
-                            if (FilenameUtils.wildcardMatch(scmFile.name, exclude)) {
-                                isNotExclude = false
-                            }
-                        }
-                        if (isNotExclude) {
+                        if (checkIfExcluded(scmFile)) {
                             notMatched.add(scmFile)
                         }
                     }
                 }
                 logger.debug("${svnDiffStatus.getModificationType().toString()} " +
                         "${svnDiffStatus.getFile().toString()}")
+            }
+
+            /**
+             * Проверяет находится ли проверяемый файл в списке исключенных
+             * @param scmFile обрабатываемый файл
+             * @return {@code true} если данного файла нет в списке исключенных иначе {@code false}
+             */
+            private boolean checkIfExcluded(ScmFile scmFile) {
+                boolean isNotExclude = true
+                for (exclude in ext.excludeFiles) {
+                    if (FilenameUtils.wildcardMatch(scmFile.name, exclude)) {
+                        isNotExclude = false
+                    }
+                }
+                isNotExclude
             }
         }
         logger.lifecycle("--------------- diff start ---------------")
