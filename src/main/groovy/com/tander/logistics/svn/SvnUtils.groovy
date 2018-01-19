@@ -1,5 +1,7 @@
 package com.tander.logistics.svn
 
+import com.tander.logistics.DbReleaseExtension
+import org.gradle.api.Project
 import org.tmatesoft.svn.core.*
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationProvider
@@ -18,8 +20,10 @@ class SvnUtils {
     ISVNAuthenticationManager authManager
     SVNClientManager clientManager
     SVNRevision firstRevision
+    DbReleaseExtension ext
 
-    SvnUtils(String username, char[] password) {
+    SvnUtils(String username, char[] password, Project project) {
+        this.ext = project.extensions.findByName('dbrelease') as DbReleaseExtension
         DAVRepositoryFactory.setup()
         ISVNAuthenticationProvider provider = new SvnAuthProvider()
         authManager = SVNWCUtil.createDefaultAuthenticationManager(username, password)
@@ -126,7 +130,7 @@ class SvnUtils {
      */
     String getPreviousVersionFromSet(String currentVersion) {
         String result = currentVersion
-        def repoUrl = "https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/tomcatsrv-dc-ora"
+        def repoUrl = ext.getProjectProperty('ebuildPath')
         def repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(repoUrl))
         repository.setAuthenticationManager(authManager)
         def regex = checkIsRelease(currentVersion) ? ~/\d*\.\d*\.0/ : ~/\d*\.\d*\.\d*/
