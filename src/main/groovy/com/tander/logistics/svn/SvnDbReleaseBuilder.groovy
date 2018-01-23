@@ -186,6 +186,8 @@ class SvnDbReleaseBuilder extends DbRelease {
             }
         }
 
+        removeDuplicateUninstall()
+
         scriptInstall.scmFiles.each { String fileName, ScmFile scmFile ->
             svnUtils.doExport(scmFile.url,
                     releaseDir.path + '/install/' + scmFile.name,
@@ -199,5 +201,22 @@ class SvnDbReleaseBuilder extends DbRelease {
                     dispatcher)
         }
         logger.lifecycle("--------------- export finish ---------------")
+    }
+
+    /**
+     * Проверяем если для файла имеется файл отката с суффиксом "uninstall", то удаляем его из
+     * секции uninstall сборки
+     *
+     */
+    void removeDuplicateUninstall() {
+        Set<String> uninstallFileNames = scriptUninstall.scmFiles.keySet().findAll { file ->
+            file.contains('uninstall')
+        }
+
+        if (!uninstallFileNames.empty) {
+            uninstallFileNames.each { file ->
+                scriptUninstall.scmFiles.remove(file - '.uninstall')
+            }
+        }
     }
 }
