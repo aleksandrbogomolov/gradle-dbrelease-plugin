@@ -119,18 +119,17 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         def binding = makeTemplateHeadBinding()
 
         schemas.each { key, value ->
-            if (binding.get(value.keySet()[0])) {
-                binding[value.keySet()[0]] += schemaBeforeTemplate.make(makeSchemaBinding(key)).toString()
-            } else {
-                binding[value.keySet()[0]] = schemaBeforeTemplate.make(makeSchemaBinding(key)).toString()
-            }
             value.each { k, v ->
+                if (binding[k]) {
+                    binding[k] += fillTemplate(key, k)
+                } else {
+                    binding[k] = fillTemplate(key, k)
+                }
                 if (binding.get(k)) {
                     binding[k] += v
                 } else {
                     binding[k] = v
                 }
-                binding[k] += schemaAfterTemplate.make(makeSchemaBinding(key)).toString()
             }
         }
 
@@ -139,6 +138,14 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         installTemplate.makeScript(scriptFullName, binding, "cp1251")
 
         setTotalBlocksCount(scriptFullName)
+    }
+
+    private String fillTemplate(String schemaName, String schemaBlock) {
+        if (schemaBlock.toLowerCase().contains("before")) {
+            schemaBeforeTemplate.make(makeSchemaBinding(schemaName)).toString()
+        } else {
+            schemaAfterTemplate.make(makeSchemaBinding(schemaName)).toString()
+        }
     }
 
     /**
@@ -187,7 +194,6 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         script.eachLine {
             if (it.contains('TMPL.INSTALL.COUNTBLOCK')) blockCount += 1
         }
-        println(blockCount)
         String text = ''
         script.eachLine {
             if (it.contains('xxxx')) {

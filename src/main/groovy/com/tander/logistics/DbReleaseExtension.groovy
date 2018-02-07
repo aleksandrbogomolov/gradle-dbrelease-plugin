@@ -82,6 +82,18 @@ class DbReleaseExtension {
         systemName = getProjectProperty("systemName")
 
         ebuildUrl = getProjectProperty("ebuildUrl")
+
+        if (project.hasProperty("domainUser")) {
+            user = project.property("domainUser")
+        }
+
+        if (project.hasProperty("domainPassword")) {
+            password = project.property("domainPassword")
+        }
+
+        if (!password) {
+            password = ''
+        }
     }
 
     /**

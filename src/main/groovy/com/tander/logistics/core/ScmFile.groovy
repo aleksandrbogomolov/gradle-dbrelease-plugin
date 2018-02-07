@@ -1,8 +1,6 @@
 package com.tander.logistics.core
 
 import org.apache.commons.io.FilenameUtils
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 
 /**
  * Created by durov_an on 10.02.2016.
@@ -55,7 +53,9 @@ class ScmFile {
                             wildcardMatchCount += 1
                             wildcardsMatched += w + ', '
                             scriptSection = wildcard.key
-                            schemaWildcards[schema].add(this)
+                            if (!schemaWildcards[schema].contains(this)) {
+                                schemaWildcards[schema].add(this)
+                            }
                         }
                         if (wildcardMatchCount == 1) {
                             break
@@ -91,5 +91,28 @@ class ScmFile {
         sb.append(", date=").append(date)
         sb.append('}')
         sb.toString()
+    }
+
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        ScmFile scmFile = (ScmFile) o
+
+        if (name != scmFile.name) return false
+        if (schema != scmFile.schema) return false
+        if (scriptSection != scmFile.scriptSection) return false
+        if (scriptType != scmFile.scriptType) return false
+
+        return true
+    }
+
+    int hashCode() {
+        int result
+        result = (scriptType != null ? scriptType.hashCode() : 0)
+        result = 31 * result + (scriptSection != null ? scriptSection.hashCode() : 0)
+        result = 31 * result + (name != null ? name.hashCode() : 0)
+        result = 31 * result + (schema != null ? schema.hashCode() : 0)
+        return result
     }
 }
