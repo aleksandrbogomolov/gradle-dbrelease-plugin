@@ -8,6 +8,7 @@ import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
 import org.tmatesoft.svn.core.io.SVNRepository
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory
 import org.tmatesoft.svn.core.wc.*
+import org.tmatesoft.svn.core.wc2.*
 
 /**
  * Created by durov_an on 01.04.2016.
@@ -61,12 +62,15 @@ class SvnUtils {
         SVNUpdateClient updateClient = clientManager.getUpdateClient()
         updateClient.setEventHandler(dispatcher)
         updateClient.setIgnoreExternals(true)
-        updateClient.doUpdate(
-                new File(dirPath),
-                revision,
-                SVNDepth.INFINITY,
-                false,
-                false)
+        try {
+            updateClient.doUpdate(
+                    new File(dirPath),
+                    revision,
+                    SVNDepth.INFINITY,
+                    false,
+                    false)
+        } catch (SVNException e) {
+        }
     }
 
     def doLog(String svnUrl, SVNRevision startRevision, SVNRevision endRevision, long limit, ISVNLogEntryHandler isvnLogEntryHandler) {
@@ -106,15 +110,54 @@ class SvnUtils {
                 isvnDirEntryHandler)
     }
 
+    def doCommit(File path, String message) {
+        final SvnOperationFactory factory = new SvnOperationFactory()
+        try {
+            final SvnCommit svnCommit = factory.createCommit()
+            svnCommit.setSingleTarget(SvnTarget.fromFile(path))
+            svnCommit.setDepth(SVNDepth.INFINITY)
+            svnCommit.setCommitMessage(message)
+            svnCommit.run()
+        } finally {
+            factory.dispose()
+        }
+    }
+
+    def doCheckout(String targetDir, String url, SVNDepth depth) {
+        final SvnOperationFactory factory = new SvnOperationFactory()
+        try {
+            final SvnCheckout svnCheckout = factory.createCheckout()
+            svnCheckout.setSingleTarget(SvnTarget.fromFile(new File(targetDir)))
+            svnCheckout.setSource(SvnTarget.fromURL(SVNURL.parseURIEncoded(url)))
+            svnCheckout.setRevision(SVNRevision.HEAD)
+            svnCheckout.setDepth(depth)
+            svnCheckout.run()
+        } finally {
+            factory.dispose()
+        }
+    }
+
+    def doImport(File path, SVNURL svnurl, String message) {
+        final SvnOperationFactory factory = new SvnOperationFactory()
+        try {
+            final SvnImport svnImport = factory.createImport()
+            svnImport.setSource(path)
+            svnImport.setSingleTarget(SvnTarget.fromURL(svnurl))
+            svnImport.setCommitMessage(message)
+            svnImport.run()
+        } finally {
+            factory.dispose()
+        }
+    }
+
     void testConnection(String svnUrl) {
         SVNURL url = new SVNURL(svnUrl, true)
         SVNRepository repository = SVNRepositoryFactory.create(url, null);
-        repository.setAuthenticationManager(authManager);
+        repository.setAuthenticationManager(authManager)
         repository.testConnection()
     }
 
     String getWorkingDirectoryUrl(String dirPath) {
-
         SVNWCClient svnwcClient = clientManager.getWCClient()
         SVNInfo svnInfo = svnwcClient.doInfo(new File(dirPath), SVNRevision.WORKING)
         return svnInfo.getURL().toString()

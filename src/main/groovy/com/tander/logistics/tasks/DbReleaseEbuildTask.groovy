@@ -23,25 +23,24 @@ class DbReleaseEbuildTask extends DefaultTask {
         String setEbuildTemplate = ext.getProjectProperty('setEbuildTemplate')
         String oraEbuildTemplate = ext.getProjectProperty('oraEbuildTemplate')
         if (setEbuildTemplate) {
-            File setEbuildDir = new File(project.buildDir, "ebuilds/set")
-            setEbuildDir.mkdirs()
             //Создание install set ebuild
-            DbScriptBuilder installSetTemplate = new DbScriptBuilder(new File(project.projectDir, ext.getProjectProperty('setEbuildTemplate')))
-            installSetTemplate.makeScript("${project.buildDir}/ebuilds/set/" + "${ext.getProjectProperty('ebuildName')}-${project.version}.ebuild", makeTemplateBinding(), "cp1251")
+            makeEbuild("ebuilds/set", "", "setEbuildTemplate")
             //Создание uninstall set ebuild
-            DbScriptBuilder uninstallSetTemplate = new DbScriptBuilder(new File(project.projectDir, ext.getProjectProperty('setEbuildTemplate')))
-            uninstallSetTemplate.makeScript("${project.buildDir}/ebuilds/set/" + "${ext.getProjectProperty('ebuildName')}-uninstall-${project.version}.ebuild", makeTemplateBinding(), "cp1251")
+            makeEbuild("ebuilds/set", "-uninstall", "setEbuildTemplate")
         }
         if (oraEbuildTemplate) {
-            File oraEbuildDir = new File(project.buildDir, "ebuilds/ora")
-            oraEbuildDir.mkdirs()
             //Создание install tander-tsdserver ebuild
-            DbScriptBuilder installOraTemplate = new DbScriptBuilder(new File(project.projectDir, ext.getProjectProperty('oraEbuildTemplate')))
-            installOraTemplate.makeScript("${project.buildDir}/ebuilds/ora/" + "${ext.getProjectProperty('ebuildName')}-${project.version}.ebuild", new HashMap(), "cp1251")
+            makeEbuild("ebuilds/tander-tsdserver", "", "oraEbuildTemplate")
             //Создание uninstall tander-tsdserver ebuild
-            DbScriptBuilder uninstallOraTemplate = new DbScriptBuilder(new File(project.projectDir, ext.getProjectProperty('oraEbuildTemplate')))
-            uninstallOraTemplate.makeScript("${project.buildDir}/ebuilds/ora/" + "${ext.getProjectProperty('ebuildName')}-uninstall-${project.version}.ebuild", new HashMap(), "cp1251")
+            makeEbuild("ebuilds/tander-tsdserver", "-uninstall", "oraEbuildTemplate")
         }
+    }
+
+    private void makeEbuild(String path, String pathSuffix, String templateName) {
+        File dir = new File(project.buildDir, "$path/${ext.settings.get("ebuildName")}$pathSuffix")
+        dir.mkdirs()
+        DbScriptBuilder builder = new DbScriptBuilder(new File(project.projectDir, ext.getProjectProperty(templateName)))
+        builder.makeScript(dir.path + "/${ext.getProjectProperty('ebuildName')}$pathSuffix-${project.version}.ebuild", makeTemplateBinding(), "cp1251")
     }
 
     private LinkedHashMap makeTemplateBinding() {
