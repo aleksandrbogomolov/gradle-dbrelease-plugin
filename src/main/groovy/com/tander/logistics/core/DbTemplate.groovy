@@ -118,17 +118,26 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
 
         def binding = makeTemplateHeadBinding()
 
-        schemas.each { key, value ->
-            value.each { k, v ->
-                if (binding[k]) {
-                    binding[k] += fillTemplate(key, k)
+        schemas.each { schema, value ->
+            value.each {String block, String blockList ->
+                if (blockList.length() > 0) {
+                    if (binding[block]) {
+                        binding[block] += schemaBeforeTemplate.make(makeSchemaBinding(schema)).toString()
+                    } else {
+                        binding[block] = schemaBeforeTemplate.make(makeSchemaBinding(schema)).toString()
+                    }
+                    if (binding.get(block)) {
+                        binding[block] += blockList
+                    } else {
+                        binding[block] = blockList
+                    }
+                    binding[block] += schemaAfterTemplate.make(makeSchemaBinding(schema)).toString()
                 } else {
-                    binding[k] = fillTemplate(key, k)
-                }
-                if (binding.get(k)) {
-                    binding[k] += v
-                } else {
-                    binding[k] = v
+                    if (binding[block]) {
+                        binding[block] += ""
+                    } else {
+                        binding[block] = ""
+                    }
                 }
             }
         }
@@ -138,14 +147,6 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         installTemplate.makeScript(scriptFullName, binding, "cp1251")
 
         setTotalBlocksCount(scriptFullName)
-    }
-
-    private String fillTemplate(String schemaName, String schemaBlock) {
-        if (schemaBlock.toLowerCase().contains("before")) {
-            schemaBeforeTemplate.make(makeSchemaBinding(schemaName)).toString()
-        } else {
-            schemaAfterTemplate.make(makeSchemaBinding(schemaName)).toString()
-        }
     }
 
     /**
