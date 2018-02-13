@@ -118,22 +118,26 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
 
         def binding = makeTemplateHeadBinding()
 
-        schemas.each { key, value ->
-            value.each { k, v ->
-                if (v.length() > 0) {
-                    if (binding[k]) {
-                        binding[k] += schemaBeforeTemplate.make(makeSchemaBinding(key)).toString()
+        schemas.each { schema, value ->
+            value.each {String block, String blockList ->
+                if (blockList.length() > 0) {
+                    if (binding[block]) {
+                        binding[block] += schemaBeforeTemplate.make(makeSchemaBinding(schema)).toString()
                     } else {
-                        binding[k] = schemaBeforeTemplate.make(makeSchemaBinding(key)).toString()
+                        binding[block] = schemaBeforeTemplate.make(makeSchemaBinding(schema)).toString()
                     }
-                    if (binding.get(k)) {
-                        binding[k] += v
+                    if (binding.get(block)) {
+                        binding[block] += blockList
                     } else {
-                        binding[k] = v
+                        binding[block] = blockList
                     }
-                    binding[k] += schemaAfterTemplate.make(makeSchemaBinding(key)).toString()
+                    binding[block] += schemaAfterTemplate.make(makeSchemaBinding(schema)).toString()
                 } else {
-                    binding[k] = ""
+                    if (binding[block]) {
+                        binding[block] += ""
+                    } else {
+                        binding[block] = ""
+                    }
                 }
             }
         }
