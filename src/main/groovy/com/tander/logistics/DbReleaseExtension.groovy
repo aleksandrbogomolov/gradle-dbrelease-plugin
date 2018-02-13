@@ -36,6 +36,7 @@ class DbReleaseExtension {
     LinkedHashMap sectionWildcards
     LinkedHashMap schemaWildcards
     HashMap settings
+    HashMap<String, String> commitSettings
     List<String> excludeFiles
 
     DbReleaseExtension(Project project) {
@@ -46,6 +47,8 @@ class DbReleaseExtension {
         this.project = project
 
         settings = project.settings
+
+        commitSettings = project.commitSettings
 
         sectionWildcards = project.sectionWildcards
 

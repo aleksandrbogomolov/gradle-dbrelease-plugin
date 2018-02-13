@@ -28,7 +28,8 @@ class UiUtils {
                         input = passwordField()
                         button(defaultButton: true, text: 'OK', actionPerformed: {
                             isCanceled = false
-                            password = input.password.toString(); // Set pass variable to value of input field
+                            password = input.password.toString();
+                            // Set pass variable to value of input field
                             dispose(); // Close dialog
                         })
                     }
@@ -67,7 +68,8 @@ class UiUtils {
                         button(defaultButton: true, text: 'OK', actionPerformed: {
                             isCanceled = false
                             login = inputLogin.text.toString();
-                            password = inputPassword.password.toString(); // Set pass variable to value of input field
+                            password = inputPassword.password.toString();
+                            // Set pass variable to value of input field
                             dispose(); // Close dialog
                         })
 //                        button(defaultButton: false, text: 'Cancel', actionPerformed: {
@@ -82,5 +84,38 @@ class UiUtils {
             password = System.console().readLine("\n Please enter domain password").toString()
         }
         return [login, password, isCanceled]
+    }
+
+    static promptCommitMessage(String windowTitle, String editLabel) {
+        String message = ''
+        Boolean isCanceled = true
+        if (System.console() == null) {
+            new SwingBuilder().edt {
+                lookAndFeel 'nimbus'
+                dialog(modal: true, // Otherwise the build will continue running before you closed the dialog
+                        title: windowTitle, // Dialog title
+                        alwaysOnTop: true, // pretty much what the name says
+                        resizable: false, // Don't allow the user to resize the dialog
+                        locationRelativeTo: null, // Place dialog in center of the screen
+                        pack: true, // We need to pack the dialog (so it will take the size of it's children
+                        show: true // Let's show it
+                ) {
+                    borderLayout()
+                    vbox { // Put everything below each other
+                        label(text: editLabel)
+                        input = textField()
+                        button(defaultButton: true, text: 'OK', actionPerformed: {
+                            isCanceled = false
+                            message = input.text.toString()
+                            dispose() // Close dialog
+                        })
+                    }
+                }
+            }
+        } else {
+            isCanceled = false
+            message = System.console().readLine("\n $editLabel").toString()
+        }
+        return [message, isCanceled]
     }
 }
