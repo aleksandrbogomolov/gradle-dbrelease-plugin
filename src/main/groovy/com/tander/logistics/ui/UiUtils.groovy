@@ -86,18 +86,18 @@ class UiUtils {
         return [login, password, isCanceled]
     }
 
-    static promptCommitMessage(String windowTitle, String editLabel) {
+    static promptCommitMessage(String editLabel) {
         String message = ''
         Boolean isCanceled = true
         if (System.console() == null) {
             new SwingBuilder().edt {
                 lookAndFeel 'nimbus'
                 dialog(modal: true, // Otherwise the build will continue running before you closed the dialog
-                        title: windowTitle, // Dialog title
                         alwaysOnTop: true, // pretty much what the name says
                         resizable: false, // Don't allow the user to resize the dialog
                         locationRelativeTo: null, // Place dialog in center of the screen
                         pack: true, // We need to pack the dialog (so it will take the size of it's children
+                        preferredSize: [600, 150],
                         show: true // Let's show it
                 ) {
                     borderLayout()

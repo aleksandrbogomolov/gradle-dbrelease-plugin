@@ -42,19 +42,20 @@ class DbReleaseCommitTask extends DefaultTask {
     void run() {
         packageName = ext.settings.get("ebuildName")
 
-        boolean isCanceled
+        if (ext.commitSettings) {
+            boolean isCanceled
+            String commitMessage
 
-//        String commitMessage = "#SP1161562\n Создание инструмента для централизованной установки обновлений на РЦ.\n"
-        String commitMessage
+            (commitMessage, isCanceled) = UiUtils.promptCommitMessage("Please enter commit message:")
 
-        (commitMessage, isCanceled) = UiUtils.promptCommitMessage(
-                "Please commit message",
-                "Please commit message:")
-
-        checkoutSVNDirectory()
-        updateSVNFiles()
-        List files = copyNewFiles()
-        commit(files, commitMessage)
+            if (isCanceled) {
+                throw new Exception("Task canceled by user")
+            }
+            checkoutSVNDirectory()
+            updateSVNFiles()
+            List files = copyNewFiles()
+            commit(files, commitMessage)
+        }
     }
 
     void checkoutSVNDirectory() {
