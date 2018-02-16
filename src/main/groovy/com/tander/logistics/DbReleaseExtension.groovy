@@ -48,7 +48,7 @@ class DbReleaseExtension {
 
         settings = project.settings
 
-        commitSettings = project.commitSettings
+        commitSettings = project.findProperty('commitSettings') as HashMap<String, String>
 
         sectionWildcards = project.sectionWildcards
 
