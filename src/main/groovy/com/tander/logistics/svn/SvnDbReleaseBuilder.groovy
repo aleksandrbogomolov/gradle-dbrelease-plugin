@@ -189,10 +189,7 @@ class SvnDbReleaseBuilder extends DbRelease {
         removeDuplicateUninstall()
 
         scriptInstall.scmFiles.each { String fileName, ScmFile scmFile ->
-            svnUtils.doExport(scmFile.url,
-                    releaseDir.path + '/install/' + scmFile.name,
-                    currBranch.revision,
-                    dispatcher)
+            svnUtils.doExportNew(new File(fileName), new File("${releaseDir.path}/install/${scmFile.name}"), currBranch.revision)
         }
         scriptUninstall.scmFiles.each { String fileName, ScmFile scmFile ->
             svnUtils.doExport(scmFile.url,

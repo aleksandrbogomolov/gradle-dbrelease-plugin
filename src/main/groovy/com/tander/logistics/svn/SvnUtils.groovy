@@ -45,6 +45,19 @@ class SvnUtils {
         )
     }
 
+    def doExportNew(File src, File dst, SVNRevision revision) {
+        final SvnOperationFactory factory = new SvnOperationFactory()
+        try {
+            final SvnExport svnExport = factory.createExport()
+            svnExport.setSource(SvnTarget.fromFile(src))
+            svnExport.setSingleTarget(SvnTarget.fromFile(dst))
+            svnExport.setRevision(revision)
+            svnExport.run()
+        } finally {
+            factory.dispose()
+        }
+    }
+
     def doCheckout(String svnURL, String dirPath, SVNRevision revision, ISVNEventHandler dispatcher) {
         SVNUpdateClient updateClient = clientManager.getUpdateClient()
         updateClient.setEventHandler(dispatcher)
