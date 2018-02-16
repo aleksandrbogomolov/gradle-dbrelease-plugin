@@ -116,7 +116,7 @@ class SvnDbReleaseBuilder extends DbRelease {
                         scriptUninstall.scmFiles[scmFile.name] = scmFile
                         scmFile.url = "${prevBranch.url}/${svnDiffStatus.path}"
                     }
-                    if (scmFile.isUninstall && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED) {
+                    if (scmFile.isUninstall && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED && inStatus) {
                         scriptUninstall.scmFiles[scmFile.name] = scmFile
                     }
                     if (!matched && inStatus) {
