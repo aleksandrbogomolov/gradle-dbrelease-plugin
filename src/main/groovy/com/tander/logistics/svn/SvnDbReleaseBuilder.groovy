@@ -62,7 +62,7 @@ class SvnDbReleaseBuilder extends DbRelease {
             prevBranch.revision = SVNRevision.create(ext.prevRevision as long)
         }
 
-        prevBranch.version = project.settings.get('previousVersion')
+        prevBranch.version = ext.getProjectProperty('prevVersion')
         if (!prevBranch.version) {
             if (ext.isRelease) {
                 prevBranch.version = svnUtils.getPreviousVersionFromSet(currBranch.version, ext.ebuildUrl)
