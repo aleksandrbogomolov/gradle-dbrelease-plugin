@@ -56,7 +56,7 @@ class DbReleaseExtension {
 
         excludeFiles = project.excludeFiles
 
-        currUrl = getProjectProperty("currURL")
+        currUrl = getProjectProperty("currUrl")
 
         currRevision = getProjectProperty("currRevision")
 
@@ -64,7 +64,7 @@ class DbReleaseExtension {
 
         prevRevision = getProjectProperty("prevRevision")
 
-        isMonopol = getProjectProperty('isMonopol') ?: '1'
+        isMonopol = getProjectProperty('monopol') ?: '1'
 
         dbReleaseTemplate = getProjectProperty('dbReleaseTemplate')
 
