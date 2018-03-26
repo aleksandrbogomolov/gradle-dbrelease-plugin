@@ -26,8 +26,8 @@ class DbReleaseBuildTask extends DefaultTask {
         this.ext = project.extensions.findByName('dbrelease') as DbReleaseExtension
         DbRelease dbRelease = new SvnDbReleaseBuilder(project)
         dbRelease.setChangedFilesByDiff()
-        dbRelease.setLastCommitInfo()
         dbRelease.exportChangedFilesToDir()
+        dbRelease.setLastCommitInfo()
         logger.lifecycle("--------------- generate template start ---------------")
         dbRelease.scriptInstall.assemblyScript()
         dbRelease.scriptUninstall.assemblyScript()

@@ -62,9 +62,16 @@ class SvnDbReleaseBuilder extends DbRelease {
         }
 
         if (ext.isRelease) {
-            prevBranch.version = project.settings.get('previousVersion')
-            if (!prevBranch.version) {
-                prevBranch.version = svnUtils.getPreviousVersionFromSet(currBranch.version)
+            def prevUrl = project.settings.get('prevUrl')
+            def previousVersion = project.settings.get('previousVersion')
+            if (previousVersion) {
+                prevBranch.version = previousVersion
+            } else {
+                if (prevUrl) {
+                    prevBranch.version = prevUrl.substring(prevUrl.lastIndexOf("/") + 1)
+                } else {
+                    prevBranch.version = svnUtils.getPreviousVersionFromSet(currBranch.version)
+                }
             }
         } else {
             prevBranch.version = currBranch.version.take(currBranch.version.lastIndexOf("."))
@@ -79,9 +86,10 @@ class SvnDbReleaseBuilder extends DbRelease {
         logger.lifecycle("--------------- get revision info start ---------------")
 
         scriptInstall.scmFiles.each { String fileName, ScmFile scmFile ->
+            def urlByFilePath = svnUtils.doInfo(new File(fileName)).url.toString()
             logEntryHandler.scmFile = scmFile
             logEntryHandler.logger = logger
-            svnUtils.doLog(scmFile.url, currBranch.revision, svnUtils.firstRevision, 1, logEntryHandler)
+            svnUtils.doLog(urlByFilePath, currBranch.revision, svnUtils.firstRevision, 1, logEntryHandler)
         }
 
         logger.lifecycle("--------------- get revision info finish ---------------")

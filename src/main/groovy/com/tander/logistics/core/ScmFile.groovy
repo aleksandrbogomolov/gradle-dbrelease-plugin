@@ -3,7 +3,6 @@ package com.tander.logistics.core
 import org.apache.commons.io.FilenameUtils
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.tasks.StopActionException
 
 /**
  * Created by durov_an on 10.02.2016.
@@ -76,5 +75,18 @@ class ScmFile {
         binding["type"] = scriptType.dirName
         binding["name"] = name
         return binding
+    }
+
+    @Override
+    String toString() {
+        final StringBuilder sb = new StringBuilder("ScmFile{")
+        sb.append(", name='").append(name).append('\'')
+        sb.append(", url='").append(url).append('\'')
+        sb.append(", revision='").append(revision).append('\'')
+        sb.append(", message='").append(message).append('\'')
+        sb.append(", author='").append(author).append('\'')
+        sb.append(", date=").append(date)
+        sb.append('}')
+        return sb.toString()
     }
 }
