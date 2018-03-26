@@ -84,10 +84,12 @@ class ScmFile {
 
     @Override
     String toString() {
-        final sb = new StringBuilder("ScmFile{")
-        sb.append("name='").append(name).append('\'')
-        sb.append(", section='").append(scriptSection).append('\'')
-        sb.append(", scriptType='").append(scriptType).append('\'')
+        final StringBuilder sb = new StringBuilder("ScmFile{")
+        sb.append(", name='").append(name).append('\'')
+        sb.append(", url='").append(url).append('\'')
+        sb.append(", revision='").append(revision).append('\'')
+        sb.append(", message='").append(message).append('\'')
+        sb.append(", author='").append(author).append('\'')
         sb.append(", date=").append(date)
         sb.append('}')
         sb.toString()

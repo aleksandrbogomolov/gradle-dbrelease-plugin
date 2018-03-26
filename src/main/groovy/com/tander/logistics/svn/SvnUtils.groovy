@@ -163,6 +163,22 @@ class SvnUtils {
         }
     }
 
+    /**
+     * Достаем из СВН информацию по последним изменениям
+     * @param src файл из обрабатываемой ветки
+     * @return {@link SvnInfo} по переданому файлу
+     */
+    SvnInfo doInfo(File src) {
+        final SvnOperationFactory factory = new SvnOperationFactory()
+        try {
+            final SvnGetInfo svnInfo = factory.createGetInfo()
+            svnInfo.setSingleTarget(SvnTarget.fromFile(src))
+            return svnInfo.run()
+        } finally {
+            factory.dispose()
+        }
+    }
+
     void testConnection(String svnUrl) {
         SVNURL url = new SVNURL(svnUrl, true)
         SVNRepository repository = SVNRepositoryFactory.create(url, null);
