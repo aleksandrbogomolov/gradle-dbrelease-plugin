@@ -100,7 +100,7 @@ class SvnDbReleaseBuilder extends DbRelease {
 
             @Override
             void handleDiffStatus(SVNDiffStatus svnDiffStatus) throws SVNException {
-                boolean matched
+                boolean matched = false
                 if (svnDiffStatus.getKind() == SVNNodeKind.FILE) {
                     scmFile = new ScmFile(svnDiffStatus.getPath())
                     scmFile.url = svnDiffStatus.getURL().toString()

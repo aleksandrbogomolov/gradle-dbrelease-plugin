@@ -20,7 +20,6 @@ class ScmFile {
     String schema
     Date date
     int wildcardId
-    int wildcardMatchCount = 0
     String wildcardsMatched = ""
     boolean isUninstall
 
@@ -50,22 +49,18 @@ class ScmFile {
                         String w = values.get(i)
                         if (FilenameUtils.wildcardMatch(name, w)) {
                             wildcardId = i
-                            wildcardMatchCount += 1
                             wildcardsMatched += w + ', '
                             scriptSection = wildcard.key
                             if (!schemaWildcards[schema].contains(this)) {
                                 schemaWildcards[schema].add(this)
                             }
-                        }
-                        if (wildcardMatchCount == 1) {
-                            break
+                            return true
                         }
                     }
                 }
-                break
             }
         }
-        return wildcardMatchCount == 1
+        return false
     }
 
     LinkedHashMap makeBinding() {
