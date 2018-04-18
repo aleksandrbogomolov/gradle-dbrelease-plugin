@@ -33,8 +33,9 @@ class DbReleaseExtension {
     String schemaAfterTemplate
     String scmFileTemplate
 
-    LinkedHashMap sectionWildcards
     LinkedHashMap schemaWildcards
+    LinkedHashMap sectionWildcards
+    LinkedHashMap sectionWildcardsUninstall
     HashMap settings
     HashMap<String, String> commitSettings
     List<String> excludeFiles
@@ -51,6 +52,8 @@ class DbReleaseExtension {
         commitSettings = project.findProperty('commitSettings') as HashMap<String, String>
 
         sectionWildcards = project.sectionWildcards
+
+        sectionWildcardsUninstall = project.hasProperty("sectionWildcardsUninstall") ?  project.sectionWildcardsUninstall : project.sectionWildcards
 
         schemaWildcards = project.schemaWildcards
 

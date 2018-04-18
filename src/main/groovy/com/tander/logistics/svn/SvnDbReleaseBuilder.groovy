@@ -18,7 +18,7 @@ class SvnDbReleaseBuilder extends DbRelease {
     SvnBranch currBranch
     SvnBranch prevBranch
 
-    List<ScmFile> notMatched = new ArrayList<>()
+    List<ScmFile> notMatchedFiles = new ArrayList<>()
 
     SvnDbReleaseBuilder(Project project) {
         super(project)
@@ -110,28 +110,35 @@ class SvnDbReleaseBuilder extends DbRelease {
                     def inStatus = svnDiffStatus.getModificationType() in [SVNStatusType.STATUS_MODIFIED,
                                                                            SVNStatusType.STATUS_DELETED,
                                                                            SVNStatusType.STATUS_ADDED]
-                    if (inStatus) {
-                        matched = scmFile.checkWildcards(schemaWildcards, sectionWildcards)
-                    } else {
-                        logger.warn(scmFile.name + " Uncorrected file status : " + svnDiffStatus
-                                .getModificationType().toString())
-                    }
 
-                    if (matched && checkIfExcluded(scmFile)) {
+                    if (isNotExcluded(scmFile)) {
                         if (svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED && !scmFile.isUninstall) {
-                            scriptInstall.scmFiles[scmFile.name] = scmFile
+                            matched = scmFile.checkWildcards(schemaWildcards, sectionWildcards)
+                            if (matched) {
+                                scriptInstall.scmFiles[scmFile.name] = scmFile
+                            }
                         }
                         if (svnDiffStatus.getModificationType() != SVNStatusType.STATUS_DELETED && !scmFile.isUninstall) {
-                            scriptUninstall.scmFiles[scmFile.name] = scmFile
-                            scmFile.url = "${prevBranch.url}/${svnDiffStatus.path}"
+                            matched = scmFile.checkWildcards(schemaWildcards, sectionWildcardsUninstall)
+                            if (matched) {
+                                scriptUninstall.scmFiles[scmFile.name] = scmFile
+                                scmFile.url = "${prevBranch.url}/${svnDiffStatus.path}"
+                            }
                         }
                         if (scmFile.isUninstall && svnDiffStatus.getModificationType() != SVNStatusType.STATUS_ADDED && inStatus) {
-                            scriptUninstall.scmFiles[scmFile.name] = scmFile
+                            matched = scmFile.checkWildcards(schemaWildcards, sectionWildcardsUninstall)
+                            if (matched) {
+                                scriptUninstall.scmFiles[scmFile.name] = scmFile
+                            }
                         }
-                    } else if (!matched && inStatus) {
-                        if (checkIfExcluded(scmFile)) {
-                            notMatched.add(scmFile)
+                    }
+                    if (inStatus) {
+                        if (!matched && isNotExcluded(scmFile)) {
+                            notMatchedFiles.add(scmFile)
                         }
+                    } else {
+                        logger.warn(scmFile.name + " file skipped because its status is: " + svnDiffStatus
+                                .getModificationType().toString())
                     }
                 }
                 logger.debug("${svnDiffStatus.getModificationType().toString()} " +
@@ -143,14 +150,14 @@ class SvnDbReleaseBuilder extends DbRelease {
              * @param scmFile обрабатываемый файл
              * @return {@code true} если данного файла нет в списке исключенных иначе {@code false}
              */
-            private boolean checkIfExcluded(ScmFile scmFile) {
-                boolean isNotExclude = true
+            private boolean isNotExcluded(ScmFile scmFile) {
+                boolean isNotExcluded = true
                 for (exclude in ext.excludeFiles) {
                     if (FilenameUtils.wildcardMatch(scmFile.name, exclude)) {
-                        isNotExclude = false
+                        isNotExcluded = false
                     }
                 }
-                isNotExclude
+                isNotExcluded
             }
         }
         logger.lifecycle("--------------- diff start ---------------")
@@ -160,9 +167,9 @@ class SvnDbReleaseBuilder extends DbRelease {
                 prevBranch.revision,
                 diffStatusHandler)
 
-        if (!notMatched.isEmpty()) {
+        if (!notMatchedFiles.isEmpty()) {
             logger.warn("Not matched files:")
-            notMatched.each { scmFile ->
+            notMatchedFiles.each { scmFile ->
                 logger.warn(scmFile.name)
             }
             throw new Exception("Found files not matched by any wildcard, check project_settings.gradle")
