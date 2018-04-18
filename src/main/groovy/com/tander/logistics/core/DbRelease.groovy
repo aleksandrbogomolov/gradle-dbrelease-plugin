@@ -21,6 +21,7 @@ abstract class DbRelease {
 
     LinkedHashMap<String, ArrayList<ScmFile>> schemaWildcards
     LinkedHashMap sectionWildcards
+    LinkedHashMap sectionWildcardsUninstall
     DbTemplate scriptInstall
     DbTemplate scriptUninstall
 
@@ -29,6 +30,7 @@ abstract class DbRelease {
         this.ext = project.extensions.findByName('dbrelease') as DbReleaseExtension
         this.schemaWildcards = ext.schemaWildcards
         this.sectionWildcards = ext.sectionWildcards
+        this.sectionWildcardsUninstall = ext.sectionWildcardsUninstall
 
         logger = Logging.getLogger(this.class)
         projectDir = project.projectDir
