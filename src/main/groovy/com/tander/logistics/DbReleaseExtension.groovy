@@ -39,6 +39,7 @@ class DbReleaseExtension {
     HashMap settings
     HashMap<String, String> commitSettings
     List<String> excludeFiles
+    String charset
 
     DbReleaseExtension(Project project) {
         this.project = project
@@ -48,6 +49,8 @@ class DbReleaseExtension {
         this.project = project
 
         settings = project.settings
+
+        charset = getProjectProperty("charset") ?: 'UTF-8'
 
         commitSettings = project.findProperty('commitSettings') as HashMap<String, String>
 

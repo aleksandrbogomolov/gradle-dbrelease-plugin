@@ -1,8 +1,10 @@
 group 'com.tander.logistics'
-version '0.5.5'
+version '0.5.7'
 
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
+// apply plugin: 'codenarc'
+
 
 repositories {
     maven {
@@ -18,6 +20,10 @@ dependencies {
     testCompile 'org.gperfutils:gprof:0.3.1-groovy-2.4'
     testCompile 'junit:junit:4.12'
 }
+
+//codenarcMain {
+//    configFile = rootProject.file("config/codenarc/StarterRuleSet-AllRules.groovy")
+//}
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

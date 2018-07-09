@@ -144,9 +144,9 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
 
         DbScriptBuilder installTemplate = new DbScriptBuilder(new File(project.projectDir, ext.dbReleaseTemplate))
         def scriptFullName = release.releaseDir.path + "/${type.dirName}.sql"
-        installTemplate.makeScript(scriptFullName, binding, "cp1251")
+        installTemplate.makeScript(scriptFullName, binding, 'cp1251')
 
-        setTotalBlocksCount(scriptFullName)
+        setTotalBlocksCount(scriptFullName, ext.charset)
     }
 
     /**
@@ -189,7 +189,7 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
         return schemaSections
     }
 
-    void setTotalBlocksCount(String scriptFullName) {
+    void setTotalBlocksCount(String scriptFullName, String charset) {
         int blockCount = 0
         def script = new File(scriptFullName)
         script.eachLine {
@@ -204,6 +204,6 @@ prompt BranchPrevios: ${prevBranch.url} -revision: ${prevBranch.getRevisionName(
                 text += "$it\n"
             }
         }
-        new File(scriptFullName).write(text.toString(), 'UTF-8')
+        new File(scriptFullName).write(text.toString(), charset)
     }
 }

@@ -32,8 +32,8 @@ class DbScriptBuilder {
         }
     }
 
-    def makeScript(String scriptFilePath, Map binding, String encoding) {
+    def makeScript(String scriptFilePath, Map binding, String charset) {
         def file = new File(scriptFilePath)
-        file.write(template.make(binding).toString(), encoding)
+        file.write(template.make(binding).toString(), charset)
     }
 }
