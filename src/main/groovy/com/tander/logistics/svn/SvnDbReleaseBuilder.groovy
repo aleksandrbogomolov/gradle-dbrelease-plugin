@@ -41,12 +41,14 @@ class SvnDbReleaseBuilder extends DbRelease {
         } else {
             currBranch.url = currBranch.getUrlFromFolder(project.projectDir.toString())
         }
+        logger.debug('currBranch.url = ' + currBranch.url)
 
         if (ext.currRevision) {
             currBranch.revision = SVNRevision.create(ext.currRevision as long)
         } else {
             currBranch.revision = SVNRevision.create(currBranch.getLastRevision() as long)
         }
+        logger.debug('currBranch.revision = ' + currBranch.revision.toString())
 
         currBranch.version = project.version
 
@@ -57,10 +59,12 @@ class SvnDbReleaseBuilder extends DbRelease {
             prevBranch.url = currBranch.url
             prevBranch.revision = SVNRevision.create(prevBranch.getFirstRevision() as long)
         }
+        logger.debug('prevBranch.url = ' + prevBranch.url)
 
         if (ext.prevRevision) {
             prevBranch.revision = SVNRevision.create(ext.prevRevision as long)
         }
+        logger.debug('prevBranch.revision = ' + prevBranch.revision.toString())
 
         prevBranch.version = ext.getProjectProperty('prevVersion')
         if (!prevBranch.version) {
@@ -75,10 +79,11 @@ class SvnDbReleaseBuilder extends DbRelease {
                 prevBranch.version = currBranch.version.take(currBranch.version.lastIndexOf("."))
             }
         }
+        logger.debug('prevBranch.version = ' + prevBranch.version)
 
         svnUtils.testConnection(currBranch.url)
     }
-
+    
     void setLastCommitInfo() {
         SvnFileLogEntryHandler logEntryHandler = new SvnFileLogEntryHandler()
 
